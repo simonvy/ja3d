@@ -1,30 +1,37 @@
 package ja3d.loaders.collada;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import utils.Numbers;
 import utils.XmlPath;
-
 
 public class DaeDocument {
 	
-	private Document data;
-	
 	private DaeVisualScene scene;
 	
+	private Element data;
+	
+	private Map<String, DaeSource> sources;
+	private Map<String, DaeArray> arrays;
+	
+	private Map<String, DaeVertices> vertices;
+	private Map<String, DaeGeometry> geometries;
+	private Map<String, DaeNode> nodes;
 	
 	private float unitScaleFactor = 1;
 	
-	
 	public DaeDocument(Document document, float units) {
 		
-		this.data = document;
+		this.data = (Element) document.getElementsByTagName("COLLADA").item(0);
 		
 		// :version
 		
-		float colladaUnit = Numbers.parseFloat(XmlPath.evaluate(data, "asset[0].unit[0].@meter"));
+		float colladaUnit = 1; //parseFloat(XmlPath.evaluate(data, "asset[0].unit[0].@meter"));
 		
 		if (units > 0) {
 			unitScaleFactor = colladaUnit/units;
@@ -33,52 +40,113 @@ public class DaeDocument {
 		}
 		
 		constructStructures();
-//		constructScenes();
-//		registerInstanceControllers();
-//		constructAnimations();
+		constructScenes();
 	}
 	
 	// Search for the declarations of items and fill the dictionaries.
 	private void constructStructures() {
-		Element elem = (Element) data.getElementsByTagName("COLLADA").item(0);
+		sources = new HashMap<String, DaeSource>();
+		arrays = new HashMap<String, DaeArray>();
+		
+		// sources
+		NodeList sNodes = data.getElementsByTagName("source");
+		for (int i = 0; i < sNodes.getLength(); i++) {
+			Element element = (Element) sNodes.item(i);
+			DaeSource source = new DaeSource(element, this);
+			if (source.id().length() > 0) {
+				addSource(source);
+			}
+		}
 		
 		// geometries
-		NodeList gNodes = XmlPath.list(elem, ".library_geometries.geometry");
-		
-		for (int i = 0; i < gNodes.getLength(); i++) {
-			Element element = (Element)gNodes.item(i);
+		geometries = new HashMap<String, DaeGeometry>();
+		vertices = new HashMap<String, DaeVertices>();
+		List<Element> gNodes = XmlPath.list(data, ".library_geometries.geometry");
+		for (Element element : gNodes) {
 			DaeGeometry geom = new DaeGeometry(element, this);
-			if (geom.id() != null) {
-				geometries[geom.id()] = geom;
+			if (geom.id().length() > 0) {
+				addGeometry(geom);
+			}
+		}
+		
+		// nodes
+		nodes = new HashMap<String, DaeNode>();
+		List<Element> nNodes = XmlPath.list(data, ".library_nodes.node");
+		for (Element element : nNodes) {
+			DaeNode node = new DaeNode(element, this, null, null);
+			if (node.id().length() > 0) {
+				addNode(node);
 			}
 		}
 	}
-//			private void constructStructures() {
-//				var element:XML;
-//
-//				sources = new Object();
-//				arrays = new Object();
-//
-//				effects = new Object();
-//
-//				geometries = new Object();
-//				vertices = new Object();
-//				for each (element in data.library_geometries.geometry) {
-//					// Collect all <geometry>. Dictionary <code>vertices</code> is filled at constructors.
-//					var geom:DaeGeometry = new DaeGeometry(element, this);
-//					if (geom.id != null) {
-//						geometries[geom.id] = geom;
-//					}
-//				}
-//
-//				nodes = new Object();
-//				for each (element in data.library_nodes.node) {
-//					// Create only root nodes. Others are created recursively at constructors.
-//					var node:DaeNode = new DaeNode(element, this);
-//					if (node.id != null) {
-//						nodes[node.id] = node;
-//					}
-//				}
-//			}
 	
+	private void constructScenes() {
+		String vsceneURL = XmlPath.attribute(data, ".scene.instance_visual_scene.@url[0]");
+		String vsceneID = getLocalID(vsceneURL);
+		
+		List<Element> sNodes = XmlPath.list(data, ".library_visual_scenes.visual_scene");
+		for (Element element : sNodes) {
+			DaeVisualScene vscene = new DaeVisualScene(element, this);
+			if (vsceneID.equals(vscene.id())) {
+				this.scene = vscene;
+			}
+		}
+		if (vsceneID != null && scene == null) {
+			// error
+		}
+	}
+	
+	private String getLocalID(String path) {
+		if (path.charAt(0) == '#') {
+			return path.substring(1);
+		} else {
+			return null;
+		}
+	}
+	
+	public DaeVisualScene scene() {
+		return this.scene;
+	}
+	
+	// getter and setter
+	public DaeArray findArray(String url) {
+		return arrays.get(getLocalID(url));
+	}
+	
+	public void addArray(DaeArray o) {
+		arrays.put(o.id(), o);
+	}
+	
+	public DaeSource findSource(String url) {
+		return sources.get(getLocalID(url));
+	}
+	
+	public void addSource(DaeSource o) {
+		sources.put(o.id(), o);
+	}
+	
+	public DaeVertices findVertices(String url) {
+		return vertices.get(getLocalID(url));
+	}
+	
+	public void addVertices(DaeVertices o) {
+		vertices.put(o.id(), o);
+	}
+	
+	public DaeGeometry findGeometry(String url) {
+		return geometries.get(getLocalID(url));
+	}
+	
+	public void addGeometry(DaeGeometry o) {
+		geometries.put(o.id(), o);
+	}
+	
+	public DaeNode findNode(String url) {
+		return nodes.get(getLocalID(url));
+	}
+	
+	public void addNode(DaeNode o) {
+		nodes.put(o.id(), o);
+	}
+	//
 }

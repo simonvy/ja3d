@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 import org.w3c.dom.Element;
 
-import utils.Numbers;
 import utils.XmlPath;
 
+// Done
 public class DaeArray extends DaeElement {
 
 	String[] array;
@@ -24,7 +24,8 @@ public class DaeArray extends DaeElement {
 		array = parseStringArray(data);
 		String countString = XmlPath.attribute(data, ".@count[0]");
 		if (countString != null) {
-			int count = Numbers.parseInt(countString);
+			// why it is parse integer?
+			int count = parseInt(countString);
 			if (array.length < count) {
 				return false;
 			} else {

@@ -9,6 +9,7 @@ public abstract class DaeElement {
 	protected DaeDocument document;
 	protected Element data;
 	
+	// cached attributes, if not set in the element, the value is empty instead of null.
 	private String _id;
 	private String _sid;
 	private String _name;
@@ -28,7 +29,9 @@ public abstract class DaeElement {
 		return _parsed != 0;
 	}
 	
-	protected abstract boolean parseImplementation();
+	protected boolean parseImplementation() {
+		return true;
+	}
 	
 	public String id() {
 		if (_id == null) {
@@ -53,5 +56,13 @@ public abstract class DaeElement {
 	
 	protected static String[] parseStringArray(Element element) {
 		return element.getTextContent().split(" ");
+	}
+	
+	protected static float parseFloat(String o) {
+		return Float.parseFloat(o);
+	}
+
+	protected static int parseInt(String o) {
+		return Integer.parseInt(o);
 	}
 }

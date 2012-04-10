@@ -1,12 +1,14 @@
 package ja3d.loaders.collada;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
 public class DaeVertices extends DaeElement {
 
-	private DaeSource positions;
+	DaeSource positions;
 	
 	public DaeVertices(Element data, DaeDocument document) {
 		super(data, document);
@@ -14,10 +16,19 @@ public class DaeVertices extends DaeElement {
 
 	@Override
 	protected boolean parseImplementation() {
-		Element e = XmlPath.element(data, ".input.(@semantic == 'POSITION')[0]");
+		Element e = null;
+		
+		List<Element> inputs = XmlPath.list(data, ".input");
+		for (Element input : inputs) {
+			if ("POSITION".equals(input.getAttribute("semantic"))) {
+				e = input;
+				break;
+			}
+		}
 		
 		if (e != null) {
-			positions = new DaeInput(e, document).prepareSource(3);
+			DaeInput input = new DaeInput(e, document);
+			positions = input.prepareSource(3);
 			if (positions != null) {
 				return true;
 			}

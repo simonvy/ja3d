@@ -1,13 +1,11 @@
 package ja3d.loaders.collada;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import utils.Numbers;
 import utils.XmlPath;
 
 public class DaeSource extends DaeElement {
@@ -16,9 +14,12 @@ public class DaeSource extends DaeElement {
 	private static final String INT_ARRAY = "int_array";
 	private static final String NAME_ARRAY = "Name_array";
 	
-	List<Double> numbers;
+	// union {
+	List<Float> numbers;
 	List<Integer> ints;
 	List<String> names;
+	// }
+	
 	int stride;
 	
 	public DaeSource(Element data, DaeDocument document) {
@@ -29,14 +30,19 @@ public class DaeSource extends DaeElement {
 	private void constructArrays() {
 		NodeList children = data.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
-			Element child = (Element)children.item(i);
-			String name = child.getLocalName();
-			if (FLOAT_ARRAY.equals(name) 
-					|| INT_ARRAY.equals(name) 
-					|| NAME_ARRAY.equals(name)) {
-				DaeArray array = new DaeArray(child, document);
-				if (array.id() != null) {
-					document.arrays[array.id()] = array;
+			Node node = children.item(i);
+			if (node instanceof Element) {
+				Element child = (Element)node;
+				String name = child.getTagName();
+				if (FLOAT_ARRAY.equals(name)) {
+					DaeArray array = new DaeArray(child, document);
+					if (array.id().length() > 0) {
+						document.addArray(array);
+					}
+				} else if ("technique_common".equals(name)) {
+					
+				} else {
+					throw new IllegalStateException();
 				}
 			}
 		}
@@ -51,13 +57,15 @@ public class DaeSource extends DaeElement {
 		Element accessor = this.accessor();
 		if (accessor != null) {
 			String s = XmlPath.attribute(accessor, ".@source[0]");
-			DaeArray array = s != null ? null : document.findArray(s);
+			DaeArray array = s == null ? null : document.findArray(s);
 			if (array != null) {
 				String countString = XmlPath.attribute(accessor, ".@count[0]");
 				if (countString != null) {
-					int count = Numbers.parseInt(countString);
-					int offset = Numbers.parseInt(XmlPath.attribute(accessor, ".@offset[0]"));
-					int stride = Numbers.parseInt(XmlPath.attribute(accessor, ".@stride[0]"));
+					int count = parseInt(countString);
+					String offsetString = XmlPath.attribute(accessor, ".@offset[0]");
+					String strideString = XmlPath.attribute(accessor, ".@stride[0]");
+					int offset = offsetString.length() == 0 ? 0 : parseInt(offsetString);
+					int stride = strideString.length() == 0 ? 1 : parseInt(strideString);
 					array.parse();
 					if (array.array.length < offset + count * stride) {
 						return false;
@@ -69,6 +77,7 @@ public class DaeSource extends DaeElement {
 				
 			}
 		}
+		return false;
 	}
 	
 	private int numValidParams(NodeList params) {
@@ -86,5 +95,6 @@ public class DaeSource extends DaeElement {
 	private int parseArray(int offset, int count, int stride, String[] array, String type) {
 		return 0;
 	}
+	
 
 }

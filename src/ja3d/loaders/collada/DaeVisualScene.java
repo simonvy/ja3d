@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import utils.XmlPath;
 
@@ -18,15 +17,18 @@ public class DaeVisualScene extends DaeElement {
 	}
 
 	public void constructNodes() {
-		NodeList nodesList = XmlPath.list(data, ".node");
-		int count = nodesList.getLength();
+		List<Element> nodesList = XmlPath.list(data, ".node");
 		nodes = new ArrayList<DaeNode>();
-		for (int i = 0; i < nodesList.getLength(); i++) {
-			DaeNode node = new DaeNode((Element)nodesList.item(i), document, this);
-			if (node.id() != null) {
-				document.nodes[node.id()] = node;
+		for (Element element : nodesList) {
+			DaeNode node = new DaeNode(element, document, this, null);
+			if (node.id().length() > 0) {
+				document.addNode(node);
 			}
 			nodes.add(node);
 		}
+	}
+	
+	public List<DaeNode> nodes() {
+		return this.nodes;
 	}
 }
