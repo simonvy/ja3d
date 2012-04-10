@@ -10,6 +10,7 @@ import org.w3c.dom.NodeList;
 
 import utils.XmlPath;
 
+// Done
 public class DaeDocument {
 	
 	private DaeVisualScene scene;
@@ -31,7 +32,8 @@ public class DaeDocument {
 		
 		// :version
 		
-		float colladaUnit = 1; //parseFloat(XmlPath.evaluate(data, "asset[0].unit[0].@meter"));
+		String unitXML = XmlPath.attribute(data, "asset[0].unit[0].@meter");
+		float colladaUnit = Float.parseFloat(unitXML);
 		
 		if (units > 0) {
 			unitScaleFactor = colladaUnit/units;
@@ -92,13 +94,13 @@ public class DaeDocument {
 			}
 		}
 		if (vsceneID != null && scene == null) {
-			// error
+			throw new IllegalStateException("cannot find scene with name " + vsceneID);
 		}
 	}
 	
-	private String getLocalID(String path) {
-		if (path.charAt(0) == '#') {
-			return path.substring(1);
+	private String getLocalID(String url) {
+		if (url.charAt(0) == '#') {
+			return url.substring(1);
 		} else {
 			return null;
 		}
@@ -109,43 +111,43 @@ public class DaeDocument {
 	}
 	
 	// getter and setter
-	public DaeArray findArray(String url) {
+	DaeArray findArray(String url) {
 		return arrays.get(getLocalID(url));
 	}
 	
-	public void addArray(DaeArray o) {
+	void addArray(DaeArray o) {
 		arrays.put(o.id(), o);
 	}
 	
-	public DaeSource findSource(String url) {
+	DaeSource findSource(String url) {
 		return sources.get(getLocalID(url));
 	}
 	
-	public void addSource(DaeSource o) {
+	void addSource(DaeSource o) {
 		sources.put(o.id(), o);
 	}
 	
-	public DaeVertices findVertices(String url) {
+	DaeVertices findVertices(String url) {
 		return vertices.get(getLocalID(url));
 	}
 	
-	public void addVertices(DaeVertices o) {
+	void addVertices(DaeVertices o) {
 		vertices.put(o.id(), o);
 	}
 	
-	public DaeGeometry findGeometry(String url) {
+	DaeGeometry findGeometry(String url) {
 		return geometries.get(getLocalID(url));
 	}
 	
-	public void addGeometry(DaeGeometry o) {
+	void addGeometry(DaeGeometry o) {
 		geometries.put(o.id(), o);
 	}
 	
-	public DaeNode findNode(String url) {
+	DaeNode findNode(String url) {
 		return nodes.get(getLocalID(url));
 	}
 	
-	public void addNode(DaeNode o) {
+	void addNode(DaeNode o) {
 		nodes.put(o.id(), o);
 	}
 	//

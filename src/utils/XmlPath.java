@@ -9,20 +9,23 @@ import org.w3c.dom.NodeList;
 
 public class XmlPath {
 	
+	// if the specified tags are not found, return empty list instead of the null pointer.
 	public static List<Element> list(Element e, String path) {
 		XmlPath p = new XmlPath(e, path);
 		p.process();
-		assert(p.list == null);
 		return p.list;
 	}
 	
-	// if the specified attribute is not set, return empty string instead of null pointer.
+	// if the specified attribute is not set, return empty string instead of the null pointer.
 	public static String attribute(Element e, String path) {
 		XmlPath p = new XmlPath(e, path);
 		p.process();
 		return p.attribute;
 	}
 	
+	// return the element with specified path.
+	// If multiple elements exist at the same path, the first element will be returned.
+	// could return null.
 	public static Element element(Element e, String path) {
 		XmlPath p = new XmlPath(e, path);
 		p.process();
@@ -50,7 +53,7 @@ public class XmlPath {
 				String child = word();
 				attribute = e.getAttribute(child);
 				if (LA() == '[') {
-					index();
+					index(); // ignored
 				}
 				break;
 			} else {
@@ -59,10 +62,14 @@ public class XmlPath {
 				switch(LA()) {
 				case '[':
 					int idx = index();
-					e = list.size() > idx ? list.get(idx) : null;
+					if (idx < list.size()) {
+						e = list.get(idx);
+					} else {
+						throw new IllegalStateException("index out of bound");
+					}
 					break;
-				case '.':
-					e = list.size() > 0 ? list.get(0) : null;
+				default:
+					e = !list.isEmpty() ? list.get(0) : null;
 					break;
 				}
 			}
@@ -70,24 +77,6 @@ public class XmlPath {
 		if (LA() != EOF) {
 			throw new IllegalStateException();
 		}
-	}
-	
-	private List<Element> getChildrenByTagName(Element parent, String tag) {
-		List<Element> retval = new ArrayList<Element>();
-		if (parent != null) {
-			NodeList children = parent.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++) {
-				Node child = children.item(i);
-				if (child instanceof Element) {
-					Element elem = (Element) child;
-					System.out.println(elem.getAttribute("id"));
-					if (tag.equals(elem.getTagName())) {
-						retval.add(elem);
-					}
-				}
-			}
-		}
-		return retval;
 	}
 	
 	private boolean tryMatch(char c) {
@@ -102,7 +91,7 @@ public class XmlPath {
 		int j = next;
 		while (j < s.length()) {
 			char c = s.charAt(j);
-			if (c == '_' || Character.isAlphabetic(c)) {
+			if (c == '_' || Character.isLetter(c)) {
 				j++;
 			} else {
 				break;
@@ -136,4 +125,21 @@ public class XmlPath {
 		 }
 		 next ++;
 	 }
+	 
+	 private static List<Element> getChildrenByTagName(Element parent, String tag) {
+			List<Element> retval = new ArrayList<Element>();
+			if (parent != null) {
+				NodeList children = parent.getChildNodes();
+				for (int i = 0; i < children.getLength(); i++) {
+					Node child = children.item(i);
+					if (child instanceof Element) {
+						Element elem = (Element) child;
+						if (tag.equals(elem.getTagName())) {
+							retval.add(elem);
+						}
+					}
+				}
+			}
+			return retval;
+		}
 }

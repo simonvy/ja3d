@@ -4,6 +4,10 @@ import ja3d.core.VertexAttributes;
 import ja3d.objects.Mesh;
 import ja3d.resources.Geometry;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,9 +16,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import utils.ByteArray;
 import utils.XmlPath;
 
-public class DaeGeometry extends DaeElement {
+class DaeGeometry extends DaeElement {
 
 	private List<DaeVertex> geometryVertices;
 	private List<DaePrimitive> primitives;
@@ -32,7 +37,9 @@ public class DaeGeometry extends DaeElement {
 		
 		if (e != null) {
 			vertices = new DaeVertices(e, document);
-			document.addVertices(vertices);
+			if (vertices.id().length() > 0) {
+				document.addVertices(vertices);
+			}
 		}
 	}
 
@@ -42,17 +49,16 @@ public class DaeGeometry extends DaeElement {
 			parsePrimitives();
 			
 			vertices.parse();
-			int numVertices = vertices.positions.numbers.size()/vertices.positions.stride;
+			int numVertices = vertices.positions.numbers.size() / vertices.positions.stride;
 			geometry = new Geometry();
 			geometryVertices = new ArrayList<DaeVertex>(numVertices);
 			int channels = 0;
 			for (DaePrimitive p : primitives) {
 				p.parse();
 				if (p.verticesEqual(vertices)) {
-					numVertices = geometryVertices.size();
 					channels |= p.fillGeometry(geometry, geometryVertices);
 				} else {
-					
+					// Error, Vertices of another geometry can not be used
 				}
 			}
 			
@@ -86,8 +92,35 @@ public class DaeGeometry extends DaeElement {
 			
 			numVertices = geometryVertices.size();
 			
-			// data
+			ByteArray data = new ByteArray();
 			
+			// every attribute is a float of 4 bytes.
+			int numMappings = attributes.size();
+			data.setLength(4 * numMappings * numVertices);
+			data.setEndian(ByteOrder.LITTLE_ENDIAN);
+			
+			for (DaeVertex vertex : geometryVertices) {
+				data.writeFloat(vertex.x);
+				data.writeFloat(vertex.y);
+				data.writeFloat(vertex.z);
+				if (vertex.normal != null) {
+					data.writeFloat(vertex.normal.x);
+					data.writeFloat(vertex.normal.y);
+					data.writeFloat(vertex.normal.z);
+				}
+				if (vertex.tangent != null) {
+					data.writeFloat(vertex.tangent.x);
+					data.writeFloat(vertex.tangent.y);
+					data.writeFloat(vertex.tangent.z);
+					data.writeFloat(vertex.tangent.w);
+				}
+				for (int j = 0; j < vertex.uvs.size(); j++) {
+					data.writeFloat(vertex.uvs.get(j));
+				}
+			}
+			
+			geometry._vertexStreams[0].data = data;
+			geometry._numVertices = numVertices;
 			return true;
 		}
 		return false;
@@ -95,10 +128,15 @@ public class DaeGeometry extends DaeElement {
 	
 	private void parsePrimitives() {
 		primitives = new ArrayList<DaePrimitive>();
-		NodeList children = XmlPath.element(data, ".mesh[0]").getChildNodes();
-		for (int i = 0; i < children.getLength(); i++) {
-			Node node = children.item(i);
-			if (node instanceof Element) {
+		Element mesh = XmlPath.element(data, ".mesh");
+		if (mesh != null) {
+			NodeList children = mesh.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				Node node = children.item(i);
+				if (!(node instanceof Element)) {
+					continue;
+				}
+				
 				Element child = (Element) node;
 				String localName = child.getTagName();
 				if ("polygons".equals(localName)

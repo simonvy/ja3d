@@ -79,9 +79,11 @@ public class DaePrimitive extends DaeElement {
 		String localName = data.getLocalName();
 		if ("polylist".equals(localName) || "polygons".equals(localName)) {
 			Element element = XmlPath.element(data, ".vcount[0]");
-			String[] array = parseStringArray(element);
-			for (String item : array) {
-				vcount.add(parseInt(item));
+			if (element != null) {
+				String[] array = parseStringArray(element);
+				for (String item : array) {
+					vcount.add(parseInt(item));
+				}
 			}
 		} else if ("triangles".equals(localName)) {
 			List<Element> pList = XmlPath.list(data, ".p");

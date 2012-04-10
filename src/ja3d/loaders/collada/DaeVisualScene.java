@@ -7,6 +7,7 @@ import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
+// Done
 public class DaeVisualScene extends DaeElement {
 
 	private List<DaeNode> nodes;
@@ -16,7 +17,7 @@ public class DaeVisualScene extends DaeElement {
 		constructNodes();
 	}
 
-	public void constructNodes() {
+	private void constructNodes() {
 		List<Element> nodesList = XmlPath.list(data, ".node");
 		nodes = new ArrayList<DaeNode>();
 		for (Element element : nodesList) {

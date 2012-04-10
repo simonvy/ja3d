@@ -5,23 +5,23 @@ import java.util.List;
 
 import utils.Vector3D;
 
-public class DaeVertex {
+class DaeVertex {
 
 //	private int vertexInIndex;
 //	private int vertexOutIndex;
 	
 	private List<Integer> indices = new ArrayList<Integer>();
 	
-	private double x;
-	private double y;
-	private double z;
+	float x;
+	float y;
+	float z;
 	
-	private List<Double> uvs = new ArrayList<Double>();
+	List<Float> uvs = new ArrayList<Float>();
 	
-	private Vector3D normal;
-	private Vector3D tangent;
+	Vector3D normal;
+	Vector3D tangent;
 	
-	public void addPosition(List<Double> data, int dataIndex, int stride, double unitScaleFactor) {
+	public void addPosition(List<Float> data, int dataIndex, int stride, float unitScaleFactor) {
 		indices.add(dataIndex);
 		int offset = stride * dataIndex;
 		x = data.get(offset) * unitScaleFactor;
@@ -29,7 +29,7 @@ public class DaeVertex {
 		z = data.get(offset + 2) * unitScaleFactor;
 	}
 	
-	public void addNormalList(List<Double> data, int dataIndex, int stride) {
+	public void addNormalList(List<Float> data, int dataIndex, int stride) {
 		indices.add(dataIndex);
 		int offset = stride * dataIndex;
 		normal = new Vector3D();
@@ -38,7 +38,7 @@ public class DaeVertex {
 		normal.z = data.get(offset + 2);
 	}
 	
-	public void addTangentBiDirection(List<Double> tangentData, int tangentDataIndex, int tangentStride, List<Double> biNormalData, int biNormalDataIndex, int biNormalStride) {
+	public void addTangentBiDirection(List<Float> tangentData, int tangentDataIndex, int tangentStride, List<Double> biNormalData, int biNormalDataIndex, int biNormalStride) {
 		indices.add(tangentDataIndex);
 		indices.add(biNormalDataIndex);
 		int tangentOffset = tangentStride * tangentDataIndex;
@@ -60,7 +60,7 @@ public class DaeVertex {
 		tangent.w = dot < 0 ? -1 : 1;
 	}
 	
-	public void appendUV(List<Double> data, int dataIndex, int stride) {
+	public void appendUV(List<Float> data, int dataIndex, int stride) {
 		indices.add(dataIndex);
 		uvs.add(data.get(dataIndex * stride));
 		uvs.add(1 - data.get(dataIndex * stride + 1));

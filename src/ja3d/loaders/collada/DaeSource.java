@@ -57,10 +57,10 @@ public class DaeSource extends DaeElement {
 		Element accessor = this.accessor();
 		if (accessor != null) {
 			String s = XmlPath.attribute(accessor, ".@source[0]");
-			DaeArray array = s == null ? null : document.findArray(s);
+			DaeArray array = document.findArray(s);
 			if (array != null) {
 				String countString = XmlPath.attribute(accessor, ".@count[0]");
-				if (countString != null) {
+				if (countString.length() > 0) {
 					int count = parseInt(countString);
 					String offsetString = XmlPath.attribute(accessor, ".@offset[0]");
 					String strideString = XmlPath.attribute(accessor, ".@stride[0]");
@@ -85,7 +85,7 @@ public class DaeSource extends DaeElement {
 		for (int i = 0; i < params.getLength(); i++) {
 			Element item = (Element) params.item(i);
 			String name = XmlPath.attribute(item, ".@name[0]");
-			if (name != null) {
+			if (name.length() > 0) {
 				res ++;
 			}
 		}

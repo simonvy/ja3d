@@ -4,28 +4,46 @@ import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
-public class DaeInput extends DaeElement {
+// Done
+class DaeInput extends DaeElement {
 
+	private String _semantic;
+	private String _source;
+	private	int _offset;
+	private int _set;
+	
 	public DaeInput(Element data, DaeDocument document) {
 		super(data, document);
 	}
 	
 	public String semantic() {
-		return XmlPath.attribute(data, ".@semantic[0]");
+		if (_semantic == null) {
+			_semantic = XmlPath.attribute(data, ".@semantic[0]");
+		}
+		return _semantic;
 	}
 	
 	public String source() {
-		return XmlPath.attribute(data, ".@source[0]");
+		if (_source == null) {
+			_source = XmlPath.attribute(data, ".@source[0]");
+		}
+		return _source;
 	}
 	
 	public int offset() {
-		String o = XmlPath.attribute(data, ".@offset[0]");
-		return o == null ? 0 : parseInt(o);
+		if (_offset < 0) {
+			String o = XmlPath.attribute(data, ".@offset[0]");
+			_offset = o.length() > 0 ? parseInt(o) : 0;
+		}
+		return _offset;
 	}
 	
 	public int setNum() {
-		String o = XmlPath.attribute(data, ".@set[0]");
-		return o == null ? 0 : parseInt(o);
+		if (_set < 0) {
+			String o = XmlPath.attribute(data, ".@set[0]");
+			_set = o.length() > 0 ? parseInt(o) : 0;
+		}
+		return _set;
 	}
 	
 	public DaeSource prepareSource(int minComponents) {
@@ -34,6 +52,7 @@ public class DaeInput extends DaeElement {
 			source.parse();
 			if (source.numbers != null && source.stride >= minComponents) {
 				return source;
+			} else {
 			}
 		} else {
 		}

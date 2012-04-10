@@ -7,7 +7,7 @@ import org.w3c.dom.Element;
 import utils.XmlPath;
 
 // Done
-public class DaeArray extends DaeElement {
+class DaeArray extends DaeElement {
 
 	String[] array;
 	
@@ -16,16 +16,15 @@ public class DaeArray extends DaeElement {
 	}
 	
 	public String type() {
-		return data.getLocalName();
+		return data.getTagName();
 	}
 
 	@Override
 	protected boolean parseImplementation() {
 		array = parseStringArray(data);
-		String countString = XmlPath.attribute(data, ".@count[0]");
-		if (countString != null) {
-			// why it is parse integer?
-			int count = parseInt(countString);
+		String countXML = XmlPath.attribute(data, ".@count[0]");
+		if (countXML.length() > 0) {
+			int count = parseInt(countXML);
 			if (array.length < count) {
 				return false;
 			} else {

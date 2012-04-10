@@ -6,7 +6,8 @@ import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
-public class DaeVertices extends DaeElement {
+// Done
+class DaeVertices extends DaeElement {
 
 	DaeSource positions;
 	
@@ -16,18 +17,18 @@ public class DaeVertices extends DaeElement {
 
 	@Override
 	protected boolean parseImplementation() {
-		Element e = null;
+		Element inputXML = null;
 		
 		List<Element> inputs = XmlPath.list(data, ".input");
 		for (Element input : inputs) {
 			if ("POSITION".equals(input.getAttribute("semantic"))) {
-				e = input;
+				inputXML = input;
 				break;
 			}
 		}
 		
-		if (e != null) {
-			DaeInput input = new DaeInput(e, document);
+		if (inputXML != null) {
+			DaeInput input = new DaeInput(inputXML, document);
 			positions = input.prepareSource(3);
 			if (positions != null) {
 				return true;

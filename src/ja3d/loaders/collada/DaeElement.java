@@ -4,7 +4,8 @@ import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
-public abstract class DaeElement {
+// Done
+abstract class DaeElement {
 	
 	protected DaeDocument document;
 	protected Element data;
@@ -33,6 +34,18 @@ public abstract class DaeElement {
 		return true;
 	}
 	
+	protected final static String[] parseStringArray(Element element) {
+		return element.getTextContent().split(" ");
+	}
+	
+	protected final static float parseFloat(String o) {
+		return Float.parseFloat(o);
+	}
+	
+	protected final static int parseInt(String o) {
+		return Integer.parseInt(o);
+	}
+	
 	public String id() {
 		if (_id == null) {
 			_id = XmlPath.attribute(data, ".@id[0]");
@@ -52,17 +65,5 @@ public abstract class DaeElement {
 			_name = XmlPath.attribute(data, ".@name[0]");
 		}
 		return _name;
-	}
-	
-	protected static String[] parseStringArray(Element element) {
-		return element.getTextContent().split(" ");
-	}
-	
-	protected static float parseFloat(String o) {
-		return Float.parseFloat(o);
-	}
-
-	protected static int parseInt(String o) {
-		return Integer.parseInt(o);
 	}
 }

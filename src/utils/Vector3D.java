@@ -2,9 +2,9 @@ package utils;
 
 public class Vector3D {
 
-	public double x;
-	public double y;
-	public double z;
+	public float x;
+	public float y;
+	public float z;
 	
-	public double w;
+	public float w;
 }
