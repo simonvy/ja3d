@@ -17,7 +17,7 @@ class DaeSource extends DaeElement {
 //	private static final String NAME_ARRAY = "Name_array";
 	
 	// union {
-	List<Float> numbers;
+	List<Double> numbers;
 //	List<Integer> ints;
 //	List<String> names;
 	// }
@@ -100,9 +100,9 @@ class DaeSource extends DaeElement {
 		assert(numValidParams(params) != stride);
 		
 		if (FLOAT_ARRAY.equals(type)) {
-			numbers = new ArrayList<Float>(stride * count);
+			numbers = new ArrayList<Double>(stride * count);
 			for (String item : array) {
-				float v = parseFloat(item);
+				double v = parseFloat(item);
 				numbers.add(v);
 			}
 		} else {

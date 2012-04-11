@@ -7,14 +7,14 @@ import java.util.Arrays;
 public class ByteArray {
 	private ByteBuffer buffer;
 	
-	public void writeFloat(float v) {
+	public void writeFloat(double v) {
 //		if (buffer.remaining() < 4) { // float has 4 bytes
 //			ByteBuffer nbuffer = ByteBuffer.allocate(buffer.capacity() * 2);
 //			nbuffer.order(buffer.order());
 //			nbuffer.put(buffer.array());
 //			buffer = nbuffer;
 //		}
-		buffer.putFloat(v);
+		buffer.putFloat((float)v);
 	}
 	
 	public void setLength(int i) {

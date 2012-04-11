@@ -111,18 +111,18 @@ public class DaeNode extends DaeElement {
 			
 			String localName = child.getTagName();
 			if ("scale".equals(localName)) {
-				Float[] components = parseNumbersArray(child);
+				double[] components = parseNumbersArray(child);
 				matrix.appendScale(components[0], components[1], components[2]);
 			} else if ("rotate".equals(localName)) {
-				Float[] components = parseNumbersArray(child);
+				double[] components = parseNumbersArray(child);
 				matrix.appendRotation(components[3], new Vector3D(components[0], components[1], components[2]));
 			} else if ("translate".equals(localName)) {
-				Float[] components = parseNumbersArray(child);
+				double[] components = parseNumbersArray(child);
 				matrix.appendTranslation(components[0] * document.unitScaleFactor,
 						components[1] * document.unitScaleFactor,
 						components[2]*document.unitScaleFactor);
 			} else if ("matrix".equals(localName)) {
-				Float[] components = parseNumbersArray(child);
+				double[] components = parseNumbersArray(child);
 				components[3] = components[3] * document.unitScaleFactor;
 				components[7] = components[3] * document.unitScaleFactor;
 				components[11] = components[3] * document.unitScaleFactor;

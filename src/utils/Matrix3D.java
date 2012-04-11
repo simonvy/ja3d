@@ -2,7 +2,7 @@ package utils;
 
 public class Matrix3D {
 
-	public Matrix3D(Float[] components) {
+	public Matrix3D(double[] components) {
 		// 0 4  8 12 
 		// 1 5  9 13
 		// 2 6 10 14
@@ -14,17 +14,17 @@ public class Matrix3D {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void appendScale(Float sx, Float sy, Float sz) {
+	public void appendScale(double sx, double sy, double sz) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void appendRotation(Float angle, Vector3D axis) {
+	public void appendRotation(double angle, Vector3D axis) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void appendTranslation(float f, float g, float h) {
+	public void appendTranslation(double f, double g, double h) {
 		// TODO Auto-generated method stub
 		
 	}

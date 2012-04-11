@@ -38,17 +38,17 @@ abstract class DaeElement {
 		return element.getTextContent().split(" ");
 	}
 	
-	protected final static Float[] parseNumbersArray(Element element) {
+	protected final static double[] parseNumbersArray(Element element) {
 		String[] v = parseStringArray(element);
-		Float[] r = new Float[v.length];
+		double[] r = new double[v.length];
 		for (int i = 0; i < r.length; i++) {
 			r[i] = parseFloat(v[i]);
 		}
 		return r;
 	}
 	
-	protected final static float parseFloat(String o) {
-		return Float.parseFloat(o);
+	protected final static double parseFloat(String o) {
+		return Double.parseDouble(o);
 	}
 	
 	protected final static int parseInt(String o) {

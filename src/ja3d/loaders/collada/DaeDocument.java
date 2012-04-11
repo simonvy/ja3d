@@ -24,7 +24,7 @@ public class DaeDocument {
 	private Map<String, DaeGeometry> geometries;
 	private Map<String, DaeNode> nodes;
 	
-	public float unitScaleFactor = 1;
+	float unitScaleFactor = 1;
 	
 	public DaeDocument(Document document, float units) {
 		
