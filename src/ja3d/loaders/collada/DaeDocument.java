@@ -24,7 +24,7 @@ public class DaeDocument {
 	private Map<String, DaeGeometry> geometries;
 	private Map<String, DaeNode> nodes;
 	
-	private float unitScaleFactor = 1;
+	public float unitScaleFactor = 1;
 	
 	public DaeDocument(Document document, float units) {
 		
@@ -32,7 +32,7 @@ public class DaeDocument {
 		
 		// :version
 		
-		String unitXML = XmlPath.attribute(data, "asset[0].unit[0].@meter");
+		String unitXML = XmlPath.attribute(data, ".asset[0].unit[0].@meter");
 		float colladaUnit = Float.parseFloat(unitXML);
 		
 		if (units > 0) {

@@ -11,6 +11,9 @@ public class XmlPath {
 	
 	// if the specified tags are not found, return empty list instead of the null pointer.
 	public static List<Element> list(Element e, String path) {
+		if (e == null) {
+			return new ArrayList<Element>(0);
+		}
 		XmlPath p = new XmlPath(e, path);
 		p.process();
 		return p.list;
@@ -18,6 +21,9 @@ public class XmlPath {
 	
 	// if the specified attribute is not set, return empty string instead of the null pointer.
 	public static String attribute(Element e, String path) {
+		if (e == null) {
+			return "";
+		}
 		XmlPath p = new XmlPath(e, path);
 		p.process();
 		return p.attribute;
@@ -27,6 +33,9 @@ public class XmlPath {
 	// If multiple elements exist at the same path, the first element will be returned.
 	// could return null.
 	public static Element element(Element e, String path) {
+		if (e == null) {
+			return e;
+		}
 		XmlPath p = new XmlPath(e, path);
 		p.process();
 		return p.e;

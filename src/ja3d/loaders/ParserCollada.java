@@ -62,7 +62,8 @@ public class ParserCollada extends Parser {
 	}
 
 	private Object3D addObject(DaeObject animatedObject, Object3D parent, String layer) {
-		Object3D object = new Object3D(animatedObject.object());
+		Object3D object = animatedObject.object();
+		System.out.println(object.getName());
 		objects.add(object);
 		if (parent == null) {
 			hierarchy.add(object);

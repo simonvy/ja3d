@@ -4,13 +4,9 @@ import ja3d.core.VertexAttributes;
 import ja3d.objects.Mesh;
 import ja3d.resources.Geometry;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -119,8 +115,8 @@ class DaeGeometry extends DaeElement {
 				}
 			}
 			
-			geometry._vertexStreams[0].data = data;
-			geometry._numVertices = numVertices;
+//			geometry._vertexStreams[0].data = data;
+//			geometry._numVertices = numVertices;
 			return true;
 		}
 		return false;
@@ -151,7 +147,20 @@ class DaeGeometry extends DaeElement {
 		}
 	}
 
-	public Mesh parseMesh(Map<String, Object> meterials) {
-		return new Mesh();
+	// Creates geometry and returns it as mesh.
+	// materials are always null.
+	public Mesh parseMesh(Object meterials) {
+		Element meshXML = XmlPath.element(data, ".mesh");
+		if (meshXML != null) {
+			Mesh mesh = new Mesh();
+			mesh.setGeometry(geometry);
+			for (DaePrimitive p : primitives) {
+				// material is always null.
+				mesh.addSurface(null, p.indexBegin, p.numTriangles);
+			}
+			mesh.calculateBoundBox();
+			return mesh;
+		}
+		return null;
 	}
 }

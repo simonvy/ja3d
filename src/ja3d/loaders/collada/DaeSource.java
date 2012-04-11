@@ -1,5 +1,6 @@
 package ja3d.loaders.collada;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -8,16 +9,17 @@ import org.w3c.dom.NodeList;
 
 import utils.XmlPath;
 
-public class DaeSource extends DaeElement {
+// Done
+class DaeSource extends DaeElement {
 
 	private static final String FLOAT_ARRAY = "float_array";
-	private static final String INT_ARRAY = "int_array";
-	private static final String NAME_ARRAY = "Name_array";
+//	private static final String INT_ARRAY = "int_array";
+//	private static final String NAME_ARRAY = "Name_array";
 	
 	// union {
 	List<Float> numbers;
-	List<Integer> ints;
-	List<String> names;
+//	List<Integer> ints;
+//	List<String> names;
 	// }
 	
 	int stride;
@@ -80,11 +82,10 @@ public class DaeSource extends DaeElement {
 		return false;
 	}
 	
-	private int numValidParams(NodeList params) {
+	private int numValidParams(List<Element> params) {
 		int res = 0;
-		for (int i = 0; i < params.getLength(); i++) {
-			Element item = (Element) params.item(i);
-			String name = XmlPath.attribute(item, ".@name[0]");
+		for (Element param : params) {
+			String name = XmlPath.attribute(param, ".name[0]");
 			if (name.length() > 0) {
 				res ++;
 			}
@@ -92,9 +93,22 @@ public class DaeSource extends DaeElement {
 		return res;
 	}
 	
+	// This method removes from the array the items whose related parameter has no name.
+	// Assumed no such items, the method just parse the array and output the items in float type.
 	private int parseArray(int offset, int count, int stride, String[] array, String type) {
-		return 0;
+		List<Element> params = XmlPath.list(this.accessor(), ".param");
+		assert(numValidParams(params) != stride);
+		
+		if (FLOAT_ARRAY.equals(type)) {
+			numbers = new ArrayList<Float>(stride * count);
+			for (String item : array) {
+				float v = parseFloat(item);
+				numbers.add(v);
+			}
+		} else {
+			throw new IllegalStateException();
+		}
+		
+		return stride;
 	}
-	
-
 }

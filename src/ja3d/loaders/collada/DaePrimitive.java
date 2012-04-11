@@ -9,12 +9,11 @@ import org.w3c.dom.Element;
 
 import utils.XmlPath;
 
-public class DaePrimitive extends DaeElement {
+class DaePrimitive extends DaeElement {
 
 	public static final int NORMALS = 1;
 	public static final int TANGENT4 = 2;
 	public static final int[] TEXCOORDS ={8, 16, 32, 64, 128, 256, 512, 1024};
-	
 	
 	private DaeInput verticesInput;
 	private List<DaeInput> texCoordsInputs;
@@ -25,8 +24,8 @@ public class DaePrimitive extends DaeElement {
 	private List<Integer> indices;
 	private Integer inputsStride;
 	
-	private Integer indexBegin;
-	private Integer numTriangles;
+	int indexBegin;
+	int numTriangles;
 	
 	public DaePrimitive(Element data, DaeDocument document) {
 		super(data, document);
