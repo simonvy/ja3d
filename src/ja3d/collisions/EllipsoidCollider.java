@@ -93,7 +93,7 @@ public class EllipsoidCollider {
 		inverseMatrix.invert();
 		
 		// Local source - src
-		src.clear();
+		src.setTo(0, 0, 0);
 		// Local offset - displ
 		substract(matrix.transform(displacement, new Vector3D()), source, displ);
 		// Local destination point - dest
@@ -243,8 +243,8 @@ public class EllipsoidCollider {
 				Vector3D cr = crossProduct(ab, ac, new Vector3D());
 				// Case of the point is outside of the polygon
 				if (dotProduct(cr, n) < 0) {
-					double edgeLength = ab.getLengthSquare();
-					double edgeDistanceSqr = cr.getLengthSquare() / edgeLength;
+					double edgeLength = ab.getLengthSquared();
+					double edgeDistanceSqr = cr.getLengthSquared() / edgeLength;
 					if (edgeDistanceSqr < min) {
 						// Edge normalization
 						ab.normalize();
@@ -252,7 +252,7 @@ public class EllipsoidCollider {
 						double t = dotProduct(ab, ac);
 						if (t < 0) {
 							// Closest point is the first one
-							double acLen = ac.getLengthSquare();
+							double acLen = ac.getLengthSquared();
 							if (acLen < min) {
 								min = acLen;
 								face = p1;
@@ -260,7 +260,7 @@ public class EllipsoidCollider {
 						} else if (t > edgeLength) {
 							// Closest point is the second one
 							substract(point, p2, ac);
-							double acLen = ac.getLengthSquare();
+							double acLen = ac.getLengthSquared();
 							if (acLen < min) {
 								min = acLen;
 								face = p2;
@@ -288,7 +288,7 @@ public class EllipsoidCollider {
 				// reserved vector
 				Vector3D back = scale(displ, -1 / displacementLength, new Vector3D());
 				// Length of Vector pointed from closest point to the center of sphere
-				double deltaLength = delta.getLengthSquare();
+				double deltaLength = delta.getLengthSquared();
 				double projectionLength = dotProduct(delta, back);
 				double projectionInsideLength = radius * radius - deltaLength - projectionLength * projectionLength;
 				if (projectionInsideLength > 0) {
@@ -310,12 +310,9 @@ public class EllipsoidCollider {
 					}
 				}
 			}
-			
-			return minTime < 1;
 		}
 		
-		// TODO Auto-generated method stub
-		return false;
+		return minTime < 1;
 	}
 
 	public Vector3D getSphere() {
