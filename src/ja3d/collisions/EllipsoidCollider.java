@@ -2,12 +2,15 @@ package ja3d.collisions;
 
 import ja3d.core.Object3D;
 import ja3d.core.Transform3D;
+import ja3d.core.VertexAttributes;
+import ja3d.core.VertexStream;
 import ja3d.resources.Geometry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import utils.ByteArray;
 import utils.Vector3D;
 import static utils.Vector3D.*;
 
@@ -28,7 +31,6 @@ public class EllipsoidCollider {
 	private List<Double> vertices = new ArrayList<Double>();
 	private List<Double> normals = new ArrayList<Double>();
 	private List<Integer> indices = new ArrayList<Integer>();
-	
 	private int numTriangles;
 	
 	// source, displacement and destination in the local space.
@@ -57,9 +59,9 @@ public class EllipsoidCollider {
 	
 	public void calculateSphere(Transform3D transform) {
 		// place the sphere at the transform translation.
-		sphere.x = transform.d;
-		sphere.y = transform.h;
-		sphere.z = transform.l;
+		sphere.x = transform.d();
+		sphere.y = transform.h();
+		sphere.z = transform.l();
 		sphere.w = 0;
 		
 		// sphere.w is the max distance from the sphere to the four corners.
@@ -119,7 +121,7 @@ public class EllipsoidCollider {
 			// inverseTransform transforms the object coordinates into the global world.
 			// matrix transforms the global world coordinates into the sphere local coordinates.
 			// now the globalToLocalTransform of the object has the value as the combine.
-			object.globalToLocalTransform.combine(object.inverseTransform, matrix);
+			Transform3D.multiply(object.inverseTransform, matrix, object.globalToLocalTransform);
 			
 			// Check collision with the bound
 			boolean intersects = true;
@@ -128,7 +130,7 @@ public class EllipsoidCollider {
 				intersects = object.getBoundBox().checkSphere(sphere);
 			}
 			if (intersects) {
-				object.localToGlobalTransform.combine(inverseMatrix, object.transform);
+				Transform3D.multiply(inverseMatrix, object.transform, object.localToGlobalTransform);
 				object.collectGeometry(this, excludedObjects);
 			}
 			// Check children
@@ -138,14 +140,74 @@ public class EllipsoidCollider {
 		}
 		
 		numTriangles = 0;
-		int indicesLenght = 0;
-		int normalsLength = 0;
 		
-		// TODO
 		// Loop geometries
+		// because vertices, indices and normals have more than one geometry information,
+		// use mapOffset variable to identify which geometry is in use.
+		int mapOffset = 0;
 		for (int i = 0; i < geometries.size(); i++) {
 			Geometry geometry = geometries.get(i);
 			Transform3D transform = transforms.get(i);
+			int geometryIndicesLength = geometry._indices.size();
+			if (geometry.getNumVertices() == 0 || geometryIndicesLength == 0) {
+				continue;
+			}
+			
+			// Transform vertices
+			VertexStream vBuffer = geometry.getVertexStream(VertexAttributes.POSITION);
+			if (vBuffer != null) {
+				int attributesOffset = geometry.getAttributeOffset(VertexAttributes.POSITION);
+				int numMappings = vBuffer.attributes.length;
+				ByteArray data = vBuffer.data;
+				for (int j = 0; j < geometry.getNumVertices(); j++) {
+					data.setPosition(4 * (numMappings * j + attributesOffset));
+					Vector3D v = new Vector3D();
+					v.x = data.readFloat();
+					v.y = data.readFloat();
+					v.z = data.readFloat();
+					Vector3D tv = new Vector3D();
+					transform.transform(v, tv);
+					vertices.add(tv.x);
+					vertices.add(tv.y);
+					vertices.add(tv.z);
+				}
+			}
+			
+			// Loop triangles
+			List<Integer> geometryIndices = geometry._indices;
+			for (int j = 0; j < geometryIndicesLength; j += 3) {
+				int ai = geometryIndices.get(j) + mapOffset;
+				int bi = geometryIndices.get(j + 1) + mapOffset;
+				int ci = geometryIndices.get(j + 2) + mapOffset;
+				
+				Vector3D a = new Vector3D(vertices.get(ai * 3), vertices.get(ai * 3 + 1), vertices.get(ai * 3 + 2));
+				Vector3D b = new Vector3D(vertices.get(bi * 3), vertices.get(bi * 3 + 1), vertices.get(bi * 3 + 2));
+				Vector3D c = new Vector3D(vertices.get(ci * 3), vertices.get(ci * 3 + 1), vertices.get(ci * 3 + 2));
+				
+				// Exclusion by bound
+				if (a.x > rad && b.x > rad && c.x > rad || a.x < -rad && b.x < -rad && c.x < -rad) continue;
+				if (a.y > rad && b.y > rad && c.y > rad || a.y < -rad && b.y < -rad && c.y < -rad) continue;
+				if (a.z > rad && b.z > rad && c.z > rad || a.z < -rad && b.z < -rad && c.z < -rad) continue;
+				
+				// The normal
+				Vector3D ab = substract(b, a, new Vector3D());
+				Vector3D ac = substract(c, a, new Vector3D());
+				Vector3D normal = crossProduct(ab, ac, new Vector3D());
+				double len = normal.getLengthSquared();
+				if (len < 0.001) continue;
+				normal.normalize();
+				double offset = dotProduct(a, normal);
+				if (offset > rad || offset < -rad) continue;
+				indices.add(ai);
+				indices.add(bi);
+				indices.add(ci);
+				normals.add(normal.x);
+				normals.add(normal.y);
+				normals.add(normal.z);
+				normals.add(offset);
+			}
+			// Offset by number of vertices
+			mapOffset += geometry.getNumVertices();
 		}
 	}
 	
@@ -160,36 +222,46 @@ public class EllipsoidCollider {
 		prepare(source, displacement, object, excludedObjects);
 		
 		if (numTriangles > 0) {
-			int limit = 50;
-			for (int i = 0; i < limit; i++) {
-				if (checkCollision()) {
-					// Transform the point to the global space
-					matrix.transform(collisionPoint, resCollisionPoint);
-					
-					// Transform the plane to the global space
-					Vector3D ab = new Vector3D();
-					if (collisionPlane.x < collisionPlane.y) {
-						if (collisionPlane.x < collisionPlane.z) {
-							ab.x = 0;
-							ab.y = -collisionPlane.z;
-							ab.z = collisionPlane.y;
-						} else {
-							ab.x = -collisionPlane.y;
-							ab.y = collisionPlane.x;
-							ab.z = 0;
-						}
+			if (checkCollision()) {
+				// Transform the point to the global space
+				matrix.transform(collisionPoint, resCollisionPoint);
+				
+				// Transform the plane to the global space
+				Vector3D ab = new Vector3D();
+				if (collisionPlane.x < collisionPlane.y) {
+					if (collisionPlane.x < collisionPlane.z) {
+						ab.x = 0;
+						ab.y = -collisionPlane.z;
+						ab.z = collisionPlane.y;
 					} else {
-						if (collisionPlane.y < collisionPlane.z) {
-							ab.x = collisionPlane.z;
-							ab.y = 0;
-							ab.z = -collisionPlane.x;
-						} else {
-							ab.x = -collisionPlane.y;
-							ab.y = collisionPlane.x;
-							ab.z = 0;
-						}
+						ab.x = -collisionPlane.y;
+						ab.y = collisionPlane.x;
+						ab.z = 0;
+					}
+				} else {
+					if (collisionPlane.y < collisionPlane.z) {
+						ab.x = collisionPlane.z;
+						ab.y = 0;
+						ab.z = -collisionPlane.x;
+					} else {
+						ab.x = -collisionPlane.y;
+						ab.y = collisionPlane.x;
+						ab.z = 0;
 					}
 				}
+				
+				Vector3D ac = crossProduct(ab, collisionPlane, new Vector3D());
+				Vector3D ab2 = matrix.transformWithoutTranslate(ab, new Vector3D());
+				Vector3D ac2 = matrix.transformWithoutTranslate(ac, new Vector3D());
+				
+				crossProduct(ac2, ab2, resCollisionPlane);
+				resCollisionPlane.normalize();
+				resCollisionPlane.w = 1;
+				//
+				
+				return true;
+			} else {
+				return false;
 			}
 		}
 		
@@ -230,7 +302,7 @@ public class EllipsoidCollider {
 				ma(ma(src, displ, t, point), n, -radius, point);
 			}
 			
-			// Now to calculate Closest polygon vertex
+			// Now to calculate Closest polygon vertex(face)
 			Vector3D face = null;
 			double min = Double.MAX_VALUE;
 			boolean inside = true;
@@ -317,6 +389,12 @@ public class EllipsoidCollider {
 
 	public Vector3D getSphere() {
 		return sphere;
+	}
+
+	// this method is called while collect geometries.
+	public void addGeometry(Geometry geometry, Transform3D transform) {
+		geometries.add(geometry);
+		transforms.add(transform);
 	}
 	
 }

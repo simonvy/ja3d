@@ -1,32 +1,26 @@
 package utils;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
 public class ByteArray {
-	private ByteBuffer buffer;
 	
-	public void writeFloat(double v) {
-//		if (buffer.remaining() < 4) { // float has 4 bytes
-//			ByteBuffer nbuffer = ByteBuffer.allocate(buffer.capacity() * 2);
-//			nbuffer.order(buffer.order());
-//			nbuffer.put(buffer.array());
-//			buffer = nbuffer;
-//		}
-		buffer.putFloat((float)v);
+	private double[] buffer;
+	private int nextWriteIndex;
+	private int nextReadIndex;
+	
+	public ByteArray(int size) {
+		buffer = new double[size / 4];
+		nextWriteIndex = 0;
+		nextReadIndex = 0;
 	}
 	
-	public void setLength(int i) {
-		buffer = ByteBuffer.allocate(i);
+	public void writeFloat(double value) {
+		buffer[nextWriteIndex++] = value;
 	}
 	
-	public void setEndian(ByteOrder bo) {
-		buffer.order(bo);
+	public void setPosition(int value) {
+		nextReadIndex = value / 4;
 	}
 	
-	public byte[] bytes() {
-		buffer.flip();
-		return Arrays.copyOfRange(buffer.array(), 0, buffer.limit());
+	public double readFloat() {
+		return buffer[nextReadIndex++];
 	}
 }

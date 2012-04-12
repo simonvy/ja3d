@@ -9,8 +9,8 @@ class DaeInput extends DaeElement {
 
 	private String _semantic;
 	private String _source;
-	private	int _offset;
-	private int _set;
+	private	int _offset = -1;
+	private int _set = -1;
 	
 	public DaeInput(Element data, DaeDocument document) {
 		super(data, document);

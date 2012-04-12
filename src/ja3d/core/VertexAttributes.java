@@ -12,4 +12,21 @@ public class VertexAttributes {
 	
 	public static final int[] TEXCOORDS = {8, 9, 10, 11, 12, 13, 14, 15};
 	
+	public static final int NEXT_INDEX = 16;
+	
+	public static int getAttributeStride(int attribute) {
+		if (attribute >= TEXCOORDS[0] && attribute <= TEXCOORDS[TEXCOORDS.length - 1]) {
+			return 2;
+		}
+		if (attribute == POSITION || attribute == NORMAL) {
+			return 3;
+		}
+		if (attribute >= JOINTS[0] && attribute <= JOINTS[JOINTS.length - 1]) {
+			return 4;
+		}
+		if (attribute == TANGENT4) {
+			return 4;
+		}
+		return 0;
+	}
 }

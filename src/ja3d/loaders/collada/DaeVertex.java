@@ -7,21 +7,22 @@ import utils.Vector3D;
 
 class DaeVertex {
 
-//	private int vertexInIndex;
-//	private int vertexOutIndex;
+	int vertexInIndex;
+	int vertexOutIndex;
 	
-	private List<Integer> indices = new ArrayList<Integer>();
+	List<Integer> indices = new ArrayList<Integer>();
 	
-	float x;
-	float y;
-	float z;
+	double x;
+	double y;
+	double z;
 	
-	List<Float> uvs = new ArrayList<Float>();
+	List<Double> uvs = new ArrayList<Double>();
 	
 	Vector3D normal;
 	Vector3D tangent;
 	
-	public void addPosition(List<Float> data, int dataIndex, int stride, float unitScaleFactor) {
+	public void addPosition(List<Double> data, int dataIndex, int stride, float unitScaleFactor) {
+		assert(stride == 3);
 		indices.add(dataIndex);
 		int offset = stride * dataIndex;
 		x = data.get(offset) * unitScaleFactor;
@@ -29,40 +30,45 @@ class DaeVertex {
 		z = data.get(offset + 2) * unitScaleFactor;
 	}
 	
-	public void addNormalList(List<Float> data, int dataIndex, int stride) {
+	public void addNormal(List<Double> data, int dataIndex, int stride) {
+		assert(stride == 3);
 		indices.add(dataIndex);
 		int offset = stride * dataIndex;
-		normal = new Vector3D();
-		normal.x = data.get(offset);
-		normal.y = data.get(offset + 1);
-		normal.z = data.get(offset + 2);
+		normal = new Vector3D(data.get(offset), data.get(offset + 1), data.get(offset + 2));
 	}
 	
-	public void addTangentBiDirection(List<Float> tangentData, int tangentDataIndex, int tangentStride, List<Double> biNormalData, int biNormalDataIndex, int biNormalStride) {
+	public void addTangentBiDirection(List<Double> tangentData, int tangentDataIndex, int tangentStride, 
+			List<Double> biNormalData, int biNormalDataIndex, int biNormalStride) {
+		
 		indices.add(tangentDataIndex);
 		indices.add(biNormalDataIndex);
+		
 		int tangentOffset = tangentStride * tangentDataIndex;
 		int biNormalOffset = biNormalStride * biNormalDataIndex;
 		
-		double biNormalX = biNormalData.get(biNormalOffset++);
-		double biNormalY = biNormalData.get(biNormalOffset++);
-		double biNormalZ = biNormalData.get(biNormalOffset++);
+		Vector3D biNormal = new Vector3D(
+				biNormalData.get(biNormalOffset), 
+				biNormalData.get(biNormalOffset + 1), 
+				biNormalData.get(biNormalOffset + 2)
+		);
 		
-		tangent = new Vector3D();
-		tangent.x = tangentData.get(tangentOffset++);
-		tangent.y = tangentData.get(tangentOffset++);
-		tangent.z = tangentData.get(tangentOffset++);
+		tangent = new Vector3D(
+				tangentData.get(tangentOffset), 
+				tangentData.get(tangentOffset + 1),
+				tangentData.get(tangentOffset + 2)
+		);
 		
-		double crossX = normal.y * tangent.z - normal.z * tangent.y;
-		double crossY = normal.z * tangent.x - normal.x * tangent.z;
-		double crossZ = normal.x * tangent.y - normal.y * tangent.x;
-		double dot = crossX * biNormalX + crossY * biNormalY + crossZ * biNormalZ;
+		Vector3D cross = new Vector3D();
+		Vector3D.crossProduct(normal, tangent, cross);
+		double dot = Vector3D.dotProduct(cross, biNormal);
+		
 		tangent.w = dot < 0 ? -1 : 1;
 	}
 	
-	public void appendUV(List<Float> data, int dataIndex, int stride) {
+	public void appendUV(List<Double> data, int dataIndex, int stride) {
 		indices.add(dataIndex);
-		uvs.add(data.get(dataIndex * stride));
-		uvs.add(1 - data.get(dataIndex * stride + 1));
+		int offset = stride * dataIndex;
+		uvs.add(data.get(offset));
+		uvs.add(1 - data.get(offset + 1));
 	}
 }

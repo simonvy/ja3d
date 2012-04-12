@@ -4,36 +4,21 @@ import utils.Vector3D;
 
 public class Transform3D {
 
-	public double a = 1;
-	public double b = 0;
-	public double c = 0;
-	public double d = 0;
+	//  0  1  2  3
+	//  4  5  6  7
+	//  8  9 10 11
+	// 12 13 14 15
+	private double[] m = new double[16];
 	
-	public double e = 0;
-	public double f = 1;
-	public double g = 0;
-	public double h = 0;
-	
-	public double i = 0;
-	public double j = 0;
-	public double k = 1;
-	public double l = 0;
+	public Transform3D() {
+		m[0] = m[5] = m[10] = m[15] = 1;
+	}
 	
 	public void identity() {
-		a = 1;
-		b = 0;
-		c = 0;
-		d = 0;
-		
-		e = 0;
-		f = 1;
-		g = 0;
-		h = 0;
-		
-		i = 0;
-		j = 0;
-		k = 1;
-		l = 0;
+		for (int i = 0; i < m.length; i++) {
+			m[i] = 0;
+		}
+		m[0] = m[5] = m[10] = m[15] = 1;
 	}
 	
 	// rotation order XYZ
@@ -62,76 +47,89 @@ public class Transform3D {
 		double cosXscaleZ = cosX*scaleZ;
 		double sinXscaleZ = sinX*scaleZ;
 		
-		a = cosZ*cosYscaleX;
-		b = cosZsinY*sinXscaleY - sinZ*cosXscaleY;
-		c = cosZsinY*cosXscaleZ + sinZ*sinXscaleZ;
-		d = x;
+		m[0] = cosZ*cosYscaleX;
+		m[1] = cosZsinY*sinXscaleY - sinZ*cosXscaleY;
+		m[2] = cosZsinY*cosXscaleZ + sinZ*sinXscaleZ;
+		m[3] = x;
 		
-		e = sinZ*cosYscaleX;
-		f = sinZsinY*sinXscaleY + cosZ*cosXscaleY;
-		g = sinZsinY*cosXscaleZ - cosZ*sinXscaleZ;
-		h = y;
+		m[4] = sinZ*cosYscaleX;
+		m[5] = sinZsinY*sinXscaleY + cosZ*cosXscaleY;
+		m[6] = sinZsinY*cosXscaleZ - cosZ*sinXscaleZ;
+		m[7] = y;
 		
-		i = -sinY*scaleX;
-		j = cosY*sinXscaleY;
-		k = cosY*cosXscaleZ;
-		l = z;
+		m[8] = -sinY*scaleX;
+		m[9] = cosY*sinXscaleY;
+		m[10] = cosY*cosXscaleZ;
+		m[11] = z;
 	}
 
 	// this * invert is entity.
 	public void invert() {
-		double ta = a, tb = b, tc = c, td = d;
-		double te = e, tf = f, tg = g, th = h;
-		double ti = i, tj = j, tk = k, tl = l;
+		double ta = m[0], tb = m[1], tc = m[2], td = m[3];
+		double te = m[4], tf = m[5], tg = m[6], th = m[7];
+		double ti = m[8], tj = m[9], tk = m[10], tl = m[11];
 		double det = 1/(-tc*tf*ti + tb*tg*ti + tc*te*tj - ta*tg*tj - tb*te*tk + ta*tf*tk);
-		a = (-tg*tj + tf*tk)*det;
-		b = (tc*tj - tb*tk)*det;
-		c = (-tc*tf + tb*tg)*det;
-		d = (td*tg*tj - tc*th*tj - td*tf*tk + tb*th*tk + tc*tf*tl - tb*tg*tl)*det;
-		e = (tg*ti - te*tk)*det;
-		f = (-tc*ti + ta*tk)*det;
-		g = (tc*te - ta*tg)*det;
-		h = (tc*th*ti - td*tg*ti + td*te*tk - ta*th*tk - tc*te*tl + ta*tg*tl)*det;
-		i = (-tf*ti + te*tj)*det;
-		j = (tb*ti - ta*tj)*det;
-		k = (-tb*te + ta*tf)*det;
-		l = (td*tf*ti - tb*th*ti - td*te*tj + ta*th*tj + tb*te*tl - ta*tf*tl)*det;
+		m[0] = (-tg*tj + tf*tk)*det;
+		m[1] = (tc*tj - tb*tk)*det;
+		m[2] = (-tc*tf + tb*tg)*det;
+		m[3] = (td*tg*tj - tc*th*tj - td*tf*tk + tb*th*tk + tc*tf*tl - tb*tg*tl)*det;
+		m[4] = (tg*ti - te*tk)*det;
+		m[5] = (-tc*ti + ta*tk)*det;
+		m[6] = (tc*te - ta*tg)*det;
+		m[7] = (tc*th*ti - td*tg*ti + td*te*tk - ta*th*tk - tc*te*tl + ta*tg*tl)*det;
+		m[8] = (-tf*ti + te*tj)*det;
+		m[9] = (tb*ti - ta*tj)*det;
+		m[10] = (-tb*te + ta*tf)*det;
+		m[11] = (td*tf*ti - tb*th*ti - td*te*tj + ta*th*tj + tb*te*tl - ta*tf*tl)*det;
 	}
 	
-	public void combine(Transform3D transformA, Transform3D transformB) {
-		a = transformA.a*transformB.a + transformA.b*transformB.e + transformA.c*transformB.i;
-		b = transformA.a*transformB.b + transformA.b*transformB.f + transformA.c*transformB.j;
-		c = transformA.a*transformB.c + transformA.b*transformB.g + transformA.c*transformB.k;
-		d = transformA.a*transformB.d + transformA.b*transformB.h + transformA.c*transformB.l + transformA.d;
-		e = transformA.e*transformB.a + transformA.f*transformB.e + transformA.g*transformB.i;
-		f = transformA.e*transformB.b + transformA.f*transformB.f + transformA.g*transformB.j;
-		g = transformA.e*transformB.c + transformA.f*transformB.g + transformA.g*transformB.k;
-		h = transformA.e*transformB.d + transformA.f*transformB.h + transformA.g*transformB.l + transformA.h;
-		i = transformA.i*transformB.a + transformA.j*transformB.e + transformA.k*transformB.i;
-		j = transformA.i*transformB.b + transformA.j*transformB.f + transformA.k*transformB.j;
-		k = transformA.i*transformB.c + transformA.j*transformB.g + transformA.k*transformB.k;
-		l = transformA.i*transformB.d + transformA.j*transformB.h + transformA.k*transformB.l + transformA.l;
+	// c = a * b
+	public static Transform3D multiply(Transform3D a, Transform3D b, Transform3D c) {
+		assert(c != a && c != b);
+		c.m[0] = a.m[0]*b.m[0] + a.m[1]*b.m[4] + a.m[2]*b.m[8];
+		c.m[1] = a.m[0]*b.m[1] + a.m[1]*b.m[5] + a.m[2]*b.m[9];
+		c.m[2] = a.m[0]*b.m[2] + a.m[1]*b.m[6] + a.m[2]*b.m[10];
+		c.m[3] = a.m[0]*b.m[3] + a.m[1]*b.m[7] + a.m[2]*b.m[11] + a.m[3];
+		c.m[4] = a.m[4]*b.m[0] + a.m[5]*b.m[4] + a.m[6]*b.m[8];
+		c.m[5] = a.m[4]*b.m[1] + a.m[5]*b.m[5] + a.m[6]*b.m[9];
+		c.m[6] = a.m[4]*b.m[2] + a.m[5]*b.m[6] + a.m[6]*b.m[10];
+		c.m[7] = a.m[4]*b.m[3] + a.m[5]*b.m[7] + a.m[6]*b.m[11] + a.m[7];
+		c.m[8] = a.m[8]*b.m[0] + a.m[9]*b.m[4] + a.m[10]*b.m[8];
+		c.m[9] = a.m[8]*b.m[1] + a.m[9]*b.m[5] + a.m[10]*b.m[9];
+		c.m[10] = a.m[8]*b.m[2] + a.m[9]*b.m[6] + a.m[10]*b.m[10];
+		c.m[11] = a.m[8]*b.m[3] + a.m[9]*b.m[7] + a.m[10]*b.m[11] + a.m[11];
+		return c;
 	}
 	
 	public void copy(Transform3D source) {
-		a = source.a;
-		b = source.b;
-		c = source.c;
-		d = source.d;
-		e = source.e;
-		f = source.f;
-		g = source.g;
-		h = source.h;
-		i = source.i;
-		j = source.j;
-		k = source.k;
-		l = source.l;
+		m = source.m.clone();
 	}
 	
 	public Vector3D transform(Vector3D v, Vector3D r) {
-		r.x = a * v.x + b * v.y + c * v.z + d;
-		r.y = e * v.x + f * v.y + g * v.z + h;
-		r.z = i * v.x + j * v.y + k * v.z + l;
+		assert(r != v);
+		r.x = m[0] * v.x + m[1] * v.y + m[2] * v.z + m[3];
+		r.y = m[4] * v.x + m[5] * v.y + m[6] * v.z + m[7];
+		r.z = m[8] * v.x + m[9] * v.y + m[10] * v.z + m[11];
 		return r;
+	}
+	
+	public Vector3D transformWithoutTranslate(Vector3D v, Vector3D r) {
+		assert(r != v);
+		r.x = m[0] * v.x + m[1] * v.y + m[2] * v.z;
+		r.y = m[4] * v.x + m[5] * v.y + m[6] * v.z;
+		r.z = m[8] * v.x + m[9] * v.y + m[10] * v.z;
+		return r;
+	}
+	
+	public double d() {
+		return m[3];
+	}
+	
+	public double h() {
+		return m[7];
+	}
+	
+	public double l() {
+		return m[11];
 	}
 }

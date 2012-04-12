@@ -18,7 +18,7 @@ public class Main {
 			throws ParserConfigurationException, SAXException, IOException {
 		
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document document = builder.parse(new File("src/test/cangku66.xml"));
+		Document document = builder.parse(new File("src/test/xiangzi.xml"));
 		
 		ParserCollada p = new ParserCollada();
 		p.parse(document, "", false);

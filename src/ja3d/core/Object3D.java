@@ -261,7 +261,7 @@ public class Object3D {
 			if (excludedObjects == null || !excludedObjects.containsKey(child)) {
 				child.composeTransforms();
 				// Calculating matrix for converting from collider coordinates to local coordinates
-				child.globalToLocalTransform.combine(child.inverseTransform, globalToLocalTransform);
+				Transform3D.multiply(child.inverseTransform, globalToLocalTransform, child.globalToLocalTransform);
 				// Check boundbox intersecting
 				boolean intersects = true;
 				if (child.getBoundBox() != null) {
@@ -270,7 +270,7 @@ public class Object3D {
 				}
 				// Adding the geometry of self content
 				if (intersects) {
-					child.localToGlobalTransform.combine(localToGlobalTransform, child.transform);
+					Transform3D.multiply(localToGlobalTransform, child.transform, child.localToGlobalTransform);
 					child.collectGeometry(collidar, excludedObjects);
 				}
 				if (child.hasChildren()) {

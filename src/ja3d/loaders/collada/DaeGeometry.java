@@ -4,7 +4,6 @@ import ja3d.core.VertexAttributes;
 import ja3d.objects.Mesh;
 import ja3d.resources.Geometry;
 
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,16 +83,15 @@ class DaeGeometry extends DaeElement {
 				}
 			}
 			
-			geometry.addVertexStream(attributes);
+			int vertexStreamIndex = geometry.addVertexStream(attributes);
 			
 			numVertices = geometryVertices.size();
 			
-			ByteArray data = new ByteArray();
-			
-			// every attribute is a float of 4 bytes.
+			// the AS code was using ByteArray to keep the data bytes of vertex as the data will be uploaded to GPU.
+			// Since we don't have to do that, we use a fake ByteArray instead, which keeps the data double directly.
+			// No need to take care of endian-ness neither.
 			int numMappings = attributes.size();
-			data.setLength(4 * numMappings * numVertices);
-			data.setEndian(ByteOrder.LITTLE_ENDIAN);
+			ByteArray data = new ByteArray(4 * numMappings * numVertices);
 			
 			for (DaeVertex vertex : geometryVertices) {
 				data.writeFloat(vertex.x);
@@ -115,6 +113,8 @@ class DaeGeometry extends DaeElement {
 				}
 			}
 			
+			geometry.setVertexStreamData(vertexStreamIndex, data);
+			geometry.setNumVertices(numVertices);
 //			geometry._vertexStreams[0].data = data;
 //			geometry._numVertices = numVertices;
 			return true;
@@ -154,10 +154,11 @@ class DaeGeometry extends DaeElement {
 		if (meshXML != null) {
 			Mesh mesh = new Mesh();
 			mesh.setGeometry(geometry);
-			for (DaePrimitive p : primitives) {
-				// material is always null.
-				mesh.addSurface(null, p.indexBegin, p.numTriangles);
-			}
+			// surface is not in use.
+//			for (DaePrimitive p : primitives) {
+//				// material is always null.
+//				mesh.addSurface(null, p.indexBegin, p.numTriangles);
+//			}
 			mesh.calculateBoundBox();
 			return mesh;
 		}

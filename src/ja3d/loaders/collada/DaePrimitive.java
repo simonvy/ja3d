@@ -157,14 +157,20 @@ class DaePrimitive extends DaeElement {
 		DaeSource positionSource = daeVertices.positions;
 		int vertexStride = 3; // XYZ
 		
-		DaeSource mainSource = positionSource;
+//		DaeSource mainSource = positionSource;
 		DaeInput mainInput = verticesInput;
 		
-		DaeSource tangentSource;
-		DaeSource binormalSource;
+		DaeSource tangentSource = null;
+		DaeSource binormalSource = null;
 		
 		int channels = 0;
-		DaeSource normalSource;
+		DaeSource normalSource = null;
+		
+		// inputOffsets is where we can find the value of the index in the related inputs
+		// for example, if we have inputOffsets [position, normal] is [0, 1].
+		// Then the vertex.indices[0] is the index of the related inputs for the position of the vertex.
+		// vertex.indices[1] is for normal.
+		// 
 		List<Integer> inputOffsets = new ArrayList<Integer>();
 		inputOffsets.add(verticesInput.offset());
 		if (normalsInput != null) {
@@ -192,20 +198,64 @@ class DaePrimitive extends DaeElement {
 			DaeSource s = texCoordsInputs.get(i).prepareSource(2); // UV
 			textureSources.add(s);
 			inputOffsets.add(texCoordsInputs.get(i).offset());
+			vertexStride += 2;
 			channels |= TEXCOORDS[i];
 		}
-		
-		int verticesLength = vertices.size();
+		//
 		
 		// Make geometry data
-//		indexBegin = geometry._indices.length;
-//		for (int i = 0; i < numIndices; i+= inputsStride) {
-//			int index = indices.get(i + mainInput.offset());
-//			DaeVertex vertex = vertices.get(index);
-//			// TODO
-//		}
-//		
-//		numTriangles = (geometry._indices.length - indexBegin)/3;
+		indexBegin = geometry._indices.size();
+		for (int i = 0; i < numIndices; i+= inputsStride) {
+			int index = indices.get(i + mainInput.offset());
+			
+			DaeVertex vertex = index < vertices.size() ? vertices.get(index) : null;
+			// not exist
+			if (vertex == null || !isEqual(vertex, indices, i, inputOffsets)) {
+				vertex = new DaeVertex();
+				// replace or add to end
+				if (index < vertices.size()) {
+					vertices.set(index, vertex);
+				} else {
+					vertices.add(vertex);
+					index = vertices.size() - 1;
+				}
+				
+				vertex.vertexInIndex = indices.get(i + verticesInput.offset());
+				vertex.addPosition(positionSource.numbers, vertex.vertexInIndex, positionSource.stride, document.unitScaleFactor);
+				
+				if (normalSource != null) {
+					vertex.addNormal(normalSource.numbers, indices.get(i + normalsInput.offset()), normalSource.stride);
+				}
+				
+				if (tangentSource != null) {
+					vertex.addTangentBiDirection(
+							tangentSource.numbers, indices.get(i + tangentsInputs.get(0).offset()), tangentSource.stride, 
+							binormalSource.numbers, indices.get(i + biNormalsInputs.get(0).offset()), binormalSource.stride
+					);
+				}
+				
+				for (int j = 0; j < textureSources.size(); j++) {
+					vertex.appendUV(textureSources.get(j).numbers, indices.get(i + texCoordsInputs.get(j).offset()), textureSources.get(j).stride);
+				}
+			}
+			
+			vertex.vertexOutIndex = index;
+			geometry._indices.add(index);
+			
+		}
+		
+		numTriangles = (geometry._indices.size() - indexBegin)/3;
 		return channels;
+	}
+	
+	// check whether the given vertex is equal to the vertex starting from index in indices/
+	// Assume both vertices have the same offsets.
+	private boolean isEqual(DaeVertex vertex, List<Integer> indices, int index, List<Integer> offsets) {
+		for (int j = 0; j < offsets.size(); j++) {
+			if (vertex.indices.get(j) != indices.get(index + offsets.get(j))) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
