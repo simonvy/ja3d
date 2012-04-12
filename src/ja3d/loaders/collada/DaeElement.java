@@ -12,7 +12,7 @@ abstract class DaeElement {
 	
 	// cached attributes, if not set in the element, the value is empty instead of null.
 	private String _id;
-	private String _sid;
+//	private String _sid;
 	private String _name;
 	
 	// -1 - not parsed, 0 - parsed with error, 1 - parsed without error.
@@ -62,12 +62,12 @@ abstract class DaeElement {
 		return _id;
 	}
 	
-	public String sid() {
-		if (_sid == null) {
-			_sid = XmlPath.attribute(data, ".@sid[0]");
-		}
-		return _sid;
-	}
+//	public String sid() {
+//		if (_sid == null) {
+//			_sid = XmlPath.attribute(data, ".@sid[0]");
+//		}
+//		return _sid;
+//	}
 	
 	public String name() {
 		if (_name == null) {

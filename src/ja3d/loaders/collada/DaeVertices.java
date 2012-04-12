@@ -37,4 +37,12 @@ class DaeVertices extends DaeElement {
 		
 		return false;
 	}
+	
+	// How many vertices are in this pool?
+	public int getNumVertices() {
+		if (positions != null) {
+			return positions.numbers.length / positions.stride;
+		}
+		return 0;
+	}
 }

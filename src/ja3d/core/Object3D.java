@@ -7,7 +7,7 @@ import java.util.Map;
 public class Object3D {
 
 	private String name;
-	private boolean visible;
+//	private boolean visible;
 	
 	private BoundBox boundBox;
 	

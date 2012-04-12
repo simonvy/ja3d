@@ -10,7 +10,7 @@ class DaeInput extends DaeElement {
 	private String _semantic;
 	private String _source;
 	private	int _offset = -1;
-	private int _set = -1;
+//	private int _set = -1;
 	
 	public DaeInput(Element data, DaeDocument document) {
 		super(data, document);
@@ -38,13 +38,13 @@ class DaeInput extends DaeElement {
 		return _offset;
 	}
 	
-	public int setNum() {
-		if (_set < 0) {
-			String o = XmlPath.attribute(data, ".@set[0]");
-			_set = o.length() > 0 ? parseInt(o) : 0;
-		}
-		return _set;
-	}
+//	public int setNum() {
+//		if (_set < 0) {
+//			String o = XmlPath.attribute(data, ".@set[0]");
+//			_set = o.length() > 0 ? parseInt(o) : 0;
+//		}
+//		return _set;
+//	}
 	
 	public DaeSource prepareSource(int minComponents) {
 		DaeSource source = document.findSource(this.source());

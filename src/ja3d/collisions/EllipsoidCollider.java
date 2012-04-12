@@ -25,6 +25,8 @@ public class EllipsoidCollider {
 	private Transform3D matrix = new Transform3D();
 	private Transform3D inverseMatrix = new Transform3D();
 	
+	// when preparing, object.collectGeometry will invoke this.addGeometry to fill this.
+	// After collision detected, these pools will be cleared.
 	private List<Geometry> geometries = new ArrayList<Geometry>();
 	private List<Transform3D> transforms = new ArrayList<Transform3D>();
 	
@@ -209,6 +211,9 @@ public class EllipsoidCollider {
 			// Offset by number of vertices
 			mapOffset += geometry.getNumVertices();
 		}
+		
+		geometries.clear();
+		transforms.clear();
 	}
 	
 	public boolean getCollision(Vector3D source, Vector3D displacement, 

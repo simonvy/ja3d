@@ -5,6 +5,7 @@ import ja3d.objects.Mesh;
 import ja3d.resources.Geometry;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -44,7 +45,7 @@ class DaeGeometry extends DaeElement {
 			parsePrimitives();
 			
 			vertices.parse();
-			int numVertices = vertices.positions.numbers.size() / vertices.positions.stride;
+			int numVertices = vertices.getNumVertices();
 			geometry = new Geometry();
 			geometryVertices = new ArrayList<DaeVertex>(numVertices);
 			int channels = 0;
@@ -94,9 +95,9 @@ class DaeGeometry extends DaeElement {
 			ByteArray data = new ByteArray(4 * numMappings * numVertices);
 			
 			for (DaeVertex vertex : geometryVertices) {
-				data.writeFloat(vertex.x);
-				data.writeFloat(vertex.y);
-				data.writeFloat(vertex.z);
+				data.writeFloat(vertex.position.x);
+				data.writeFloat(vertex.position.y);
+				data.writeFloat(vertex.position.z);
 				if (vertex.normal != null) {
 					data.writeFloat(vertex.normal.x);
 					data.writeFloat(vertex.normal.y);
@@ -145,6 +146,7 @@ class DaeGeometry extends DaeElement {
 				}
 			}
 		}
+		primitives = Collections.unmodifiableList(primitives);
 	}
 
 	// Creates geometry and returns it as mesh.

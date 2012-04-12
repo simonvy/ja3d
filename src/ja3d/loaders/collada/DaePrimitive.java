@@ -3,6 +3,7 @@ package ja3d.loaders.collada;
 import ja3d.resources.Geometry;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -13,7 +14,7 @@ class DaePrimitive extends DaeElement {
 
 	public static final int NORMALS = 1;
 	public static final int TANGENT4 = 2;
-	public static final int[] TEXCOORDS ={8, 16, 32, 64, 128, 256, 512, 1024};
+	public static final int[] TEXCOORDS = {8, 16, 32, 64, 128, 256, 512, 1024};
 	
 	private DaeInput verticesInput;
 	private List<DaeInput> texCoordsInputs;
@@ -21,11 +22,12 @@ class DaePrimitive extends DaeElement {
 	private List<DaeInput> biNormalsInputs;
 	private List<DaeInput> tangentsInputs;
 	
-	private List<Integer> indices;
+	private int[] indices;
+	// Indices are organized in groups, each group has inputsStride items.
 	private int inputsStride;
 	
-	int indexBegin;
-	int numTriangles;
+	private int indexBegin;
+	private int numTriangles;
 	
 	public DaePrimitive(Element data, DaeDocument document) {
 		super(data, document);
@@ -72,7 +74,6 @@ class DaePrimitive extends DaeElement {
 	}
 	
 	private void parseIndices() {
-		indices = new ArrayList<Integer>();
 		List<Integer> vcount = new ArrayList<Integer>();
 		
 		String localName = data.getTagName();
@@ -87,12 +88,15 @@ class DaePrimitive extends DaeElement {
 			// we do not accept other formats.
 			throw new IllegalStateException();
 			
-		} else if ("triangles".equals(localName)) {
+		} else
+			
+		if ("triangles".equals(localName)) {
 			List<Element> pList = XmlPath.list(data, ".p");
 			for (Element element : pList) {
 				String[] array = parseStringArray(element);
-				for (String item : array) {
-					indices.add(parseInt(item));
+				indices = new int[array.length];
+				for (int i = 0; i < array.length; i++) {
+					indices[i] = parseInt(array[i]);
 				}
 //				if (!vcount.isEmpty()) {
 //					indices = triangulate(indices, vcount);
@@ -146,7 +150,7 @@ class DaePrimitive extends DaeElement {
 		}
 		verticesInput.parse();
 		
-		int numIndices = indices.size();
+		int numIndices = indices.length;
 		
 		DaeVertices daeVertices = document.findVertices(verticesInput.source());
 		if (daeVertices == null) {
@@ -206,7 +210,7 @@ class DaePrimitive extends DaeElement {
 		// Make geometry data
 		indexBegin = geometry._indices.size();
 		for (int i = 0; i < numIndices; i+= inputsStride) {
-			int index = indices.get(i + mainInput.offset());
+			int index = indices[i + mainInput.offset()];
 			
 			DaeVertex vertex = index < vertices.size() ? vertices.get(index) : null;
 			// not exist
@@ -220,28 +224,27 @@ class DaePrimitive extends DaeElement {
 					index = vertices.size() - 1;
 				}
 				
-				vertex.vertexInIndex = indices.get(i + verticesInput.offset());
+				vertex.vertexInIndex = indices[i + verticesInput.offset()];
 				vertex.addPosition(positionSource.numbers, vertex.vertexInIndex, positionSource.stride, document.unitScaleFactor);
 				
 				if (normalSource != null) {
-					vertex.addNormal(normalSource.numbers, indices.get(i + normalsInput.offset()), normalSource.stride);
+					vertex.addNormal(normalSource.numbers, indices[i + normalsInput.offset()], normalSource.stride);
 				}
 				
 				if (tangentSource != null) {
 					vertex.addTangentBiDirection(
-							tangentSource.numbers, indices.get(i + tangentsInputs.get(0).offset()), tangentSource.stride, 
-							binormalSource.numbers, indices.get(i + biNormalsInputs.get(0).offset()), binormalSource.stride
+							tangentSource.numbers, indices[i + tangentsInputs.get(0).offset()], tangentSource.stride, 
+							binormalSource.numbers, indices[i + biNormalsInputs.get(0).offset()], binormalSource.stride
 					);
 				}
 				
 				for (int j = 0; j < textureSources.size(); j++) {
-					vertex.appendUV(textureSources.get(j).numbers, indices.get(i + texCoordsInputs.get(j).offset()), textureSources.get(j).stride);
+					vertex.appendUV(textureSources.get(j).numbers, indices[i + texCoordsInputs.get(j).offset()], textureSources.get(j).stride);
 				}
 			}
 			
 			vertex.vertexOutIndex = index;
 			geometry._indices.add(index);
-			
 		}
 		
 		numTriangles = (geometry._indices.size() - indexBegin)/3;
@@ -250,9 +253,9 @@ class DaePrimitive extends DaeElement {
 	
 	// check whether the given vertex is equal to the vertex starting from index in indices/
 	// Assume both vertices have the same offsets.
-	private boolean isEqual(DaeVertex vertex, List<Integer> indices, int index, List<Integer> offsets) {
+	private boolean isEqual(DaeVertex vertex, int[] indices, int index, List<Integer> offsets) {
 		for (int j = 0; j < offsets.size(); j++) {
-			if (vertex.indices.get(j) != indices.get(index + offsets.get(j))) {
+			if (vertex.indices.get(j) != indices[index + offsets.get(j)]) {
 				return false;
 			}
 		}

@@ -1,6 +1,5 @@
 package ja3d.loaders.collada;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -17,7 +16,7 @@ class DaeSource extends DaeElement {
 //	private static final String NAME_ARRAY = "Name_array";
 	
 	// union {
-	List<Double> numbers;
+	double[] numbers;
 //	List<Integer> ints;
 //	List<String> names;
 	// }
@@ -97,13 +96,12 @@ class DaeSource extends DaeElement {
 	// Assumed no such items, the method just parse the array and output the items in float type.
 	private int parseArray(int offset, int count, int stride, String[] array, String type) {
 		List<Element> params = XmlPath.list(this.accessor(), ".param");
-		assert(numValidParams(params) != stride);
+		assert(numValidParams(params) == stride);
 		
 		if (FLOAT_ARRAY.equals(type)) {
-			numbers = new ArrayList<Double>(stride * count);
-			for (String item : array) {
-				double v = parseFloat(item);
-				numbers.add(v);
+			numbers = new double[stride * count];
+			for (int i = 0; i < numbers.length; i++) {
+				numbers[i] = parseFloat(array[offset + i]);
 			}
 		} else {
 			throw new IllegalStateException();
