@@ -47,14 +47,24 @@ public class Matrix3D {
 		m[11] = ti*b.m[3] + tj*b.m[7] + tk*b.m[11] + tl;
 	}
 
+	// this matrix is TranslationXYZ * RotationZ * RotationY * RotationX * scaleXYZ
 	// decompose this matrix into [translation, rotation, scale] array.
-	// TODO
+	// refer to Transform3D compose method.
 	public Vector3D[] decompose() {
-		return new Vector3D[] {
-				new Vector3D(),
-				new Vector3D(),
-				new Vector3D()
-		};
+		Vector3D t = new Vector3D(m[3], m[7], m[11]);
+		// assume all scales are positive.
+		double sx = Math.sqrt(m[0] * m[0] + m[4] * m[4] + m[8] * m[8]);
+		double sy = Math.sqrt(m[1] * m[1] + m[5] * m[5] + m[9] * m[9]);
+		double sz = Math.sqrt(m[2] * m[2] + m[6] * m[6] + m[10] * m[10]);
+		assert(sx > 0 && sy > 0 && sz > 0);
+		Vector3D s = new Vector3D(sx, sy, sz);
+		//
+		double rx = Math.atan2(m[9] / sy, m[10] / sz);
+		double ry = Math.asin(-m[8] / sx);
+		double rz = Math.atan2(m[4], m[0]);
+		Vector3D r = new Vector3D(rx, ry, rz);
+		
+		return new Vector3D[] {t, r, s};
 	}
 	
 	private static Matrix3D rotationMatrix(double rad, Vector3D axis) {

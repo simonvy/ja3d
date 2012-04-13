@@ -21,13 +21,13 @@ public class Transform3D {
 		m[0] = m[5] = m[10] = m[15] = 1;
 	}
 	
-	// rotation order XYZ
-	// it is the multiply of three rotation/scale matrix plus one translation matrix.
+	// the resulting transform is TranslationXYZ * RotationZ * RotationY * RotationX * scaleXYZ
+	// so the rotation order is XYZ.
 	
-//	[rotationZ/scaleZ]           [rotationY/scaleY]           [rotationX/scaleX]
-//	cosRZ -sinRZ      0          cosRY      0  -sinRY         scaleX     0      0
-//	sinRZ  cosRZ      0              0 scaleY      0               0 cosRX -sinRX
-//	   0       0 scaleZ          sinRY      0   cosRY              0 sinRX  cosRX
+//	[rotationZ]              [rotationY]           [rotationX]               [scale]
+//	cosRZ -sinRZ 0           cosRY 0   sinRY       1     0      0            scaleX      0      0
+//	sinRZ  cosRZ 0               0 1       0       0 cosRX -sinRX                 0 scaleY      0
+//	   0       0 1          -sinRY 0   cosRY       0 sinRX  cosRX                 0      0 scaleZ
 	public void compose(double x, double y, double z, 
 			double rotationX, double rotationY, double rotationZ,
 			double scaleX, double scaleY, double scaleZ) {
