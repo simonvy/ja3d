@@ -27,13 +27,14 @@ public class Vector3D {
 		return x * x + y * y + z * z;
 	}
 	
-	public void normalize() {
+	public double normalize() {
 		double length = Math.sqrt(x * x + y * y + z * z);
 		if (length > 0) {
 			x /= length;
 			y /= length;
 			z /= length;
 		}
+		return length;
 	}
 	
 	public void setTo(double x, double y, double z) {

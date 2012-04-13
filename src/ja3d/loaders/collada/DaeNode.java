@@ -124,8 +124,8 @@ public class DaeNode extends DaeElement {
 			} else if ("matrix".equals(localName)) {
 				double[] components = parseNumbersArray(child);
 				components[3] = components[3] * document.unitScaleFactor;
-				components[7] = components[3] * document.unitScaleFactor;
-				components[11] = components[3] * document.unitScaleFactor;
+				components[7] = components[7] * document.unitScaleFactor;
+				components[11] = components[11] * document.unitScaleFactor;
 				matrix.append(new Matrix3D(components));
 			} else {
 				// ignored
@@ -144,6 +144,7 @@ public class DaeNode extends DaeElement {
 			matrix.append(append);
 		}
 		Vector3D[] vs = matrix.decompose();
+		
 		Vector3D t = vs[0];
 		Vector3D r = vs[1];
 		Vector3D s = vs[2];

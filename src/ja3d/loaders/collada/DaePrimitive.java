@@ -78,7 +78,7 @@ class DaePrimitive extends DaeElement {
 		
 		String localName = data.getTagName();
 		if ("polylist".equals(localName) || "polygons".equals(localName)) {
-			Element element = XmlPath.element(data, ".vcount[0]");
+			Element element = XmlPath.element(data, ".vcount");
 			if (element != null) {
 				String[] array = parseStringArray(element);
 				for (String item : array) {
@@ -102,6 +102,11 @@ class DaePrimitive extends DaeElement {
 //					indices = triangulate(indices, vcount);
 //				}
 			}
+		}
+		
+		// This should not happen
+		if (indices == null) {
+			indices = new int[0];
 		}
 	}
 	
