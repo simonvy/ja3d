@@ -61,12 +61,10 @@ public class EllipsoidCollider {
 	
 	public void calculateSphere(Transform3D transform) {
 		// place the sphere at the transform translation.
-		sphere.x = transform.d();
-		sphere.y = transform.h();
-		sphere.z = transform.l();
+		sphere.setTo(transform.d(), transform.h(), transform.l());
 		sphere.w = 0;
 		
-		// sphere.w is the max distance from the sphere to the four corners.
+		// sphere.w, the radius is the max distance from the sphere to the four corners.
 		Vector3D s = new Vector3D();
 		Vector3D d = new Vector3D();
 		Vector3D[] corners = {cornerA, cornerD, cornerD, cornerD};
@@ -90,7 +88,7 @@ public class EllipsoidCollider {
 		// Using the status of this ellipsoid as control,
 		// transform the specified object in the global world into the local world of the virtual sphere.
 		// This is the transform matrix with the ellipsoid as control.
-		// We call this coordinates space as the collidar space or the collision space.  
+		// We call this coordinates space as the collider space or the collision space.  
 		// TODO: can we deal with rotation here?
 		matrix.compose(source.x, source.y, source.z, 0, 0, 0, radiusX / radius, radiusY / radius, radiusZ / radius);
 		inverseMatrix.copy(matrix);
@@ -99,24 +97,16 @@ public class EllipsoidCollider {
 		// Local source - src
 		src.setTo(0, 0, 0);
 		// Local offset - displ
-		substract(matrix.transform(displacement, new Vector3D()), source, displ);
+		matrix.transformWithoutTranslate(displacement, displ);
 		// Local destination point - dest
 		add(src, displ, dest);
 		
 		// Bound defined by movement of the sphere
 		double rad = radius + displ.getLength();
-		cornerA.x = -rad;
-		cornerA.y = -rad;
-		cornerA.z = -rad;
-		cornerB.x = rad;
-		cornerB.y = -rad;
-		cornerB.z = -rad;
-		cornerC.x = rad;
-		cornerC.y = rad;
-		cornerC.z = -rad;
-		cornerD.x = -rad;
-		cornerD.y = rad;
-		cornerD.z = -rad;
+		cornerA.setTo(-rad, -rad, -rad);
+		cornerB.setTo(+rad, -rad, -rad);
+		cornerC.setTo(+rad, +rad, -rad);
+		cornerD.setTo(-rad, +rad, -rad);
 		
 		if (excludedObjects == null || !excludedObjects.containsKey(object)) {
 			object.composeTransforms();
@@ -137,7 +127,7 @@ public class EllipsoidCollider {
 			}
 			// Check children
 			if (object.hasChildren()) {
-				object.collectionChildrenGeometry(this, excludedObjects);
+				object.collectChildrenGeometry(this, excludedObjects);
 			}
 		}
 		
@@ -216,6 +206,36 @@ public class EllipsoidCollider {
 		transforms.clear();
 	}
 	
+	public Vector3D calculateDestination(Vector3D source, Vector3D displacement, Object3D object, Map<Object3D, Object3D> excludedObjects) {
+		if (displacement.getLength() <= threshold) {
+			return new Vector3D(source.x, source.y, source.z);
+		}
+		
+		prepare(source, displacement, object, excludedObjects);
+		
+		if (numTriangles > 0) {
+			int limit = 50;
+			for (int i = 0; i < limit; i++) {
+				if (checkCollision()) {
+					// Offset destination point from behind collision plane by radius of the sphere over plane, along the normal
+					double offset = radius + threshold + collisionPlane.w - dotProduct(dest, collisionPlane);
+					ma(dest, collisionPlane, offset, dest);
+					// Fixing up the current sphere coordinates for the next iteration
+					ma(collisionPoint, collisionPlane, radius + threshold, src);
+					// Fixing up velocity vector. The result ordered along plane of collision.
+					substract(dest, src, displ);
+					if (displ.getLength() < threshold) break;
+				} else {
+					break;
+				}
+			}
+			// Setting the coordinates
+			return matrix.transform(dest, new Vector3D());
+		} else {
+			return add(source, displacement, new Vector3D());
+		}
+	}
+	
 	public boolean getCollision(Vector3D source, Vector3D displacement, 
 			Vector3D resCollisionPoint, Vector3D resCollisionPlane,
 			Object3D object, Map<Object3D, Object3D> excludedObjects) {
@@ -291,20 +311,20 @@ public class EllipsoidCollider {
 			Vector3D c = new Vector3D(vertices.get(indexC), vertices.get(indexC + 1), vertices.get(indexC + 2));
 			
 			// Normal
-			Vector3D n = new Vector3D(normals.get(j), normals.get(j + 1), normals.get(j + 2));
+			Vector3D normal = new Vector3D(normals.get(j), normals.get(j + 1), normals.get(j + 2));
 			double offset = normals.get(j + 3);
 			j += 4;
 			
 			// distance from src to the triangle
-			double distance = dotProduct(src, n) - offset; 
+			double distance = dotProduct(src, normal) - offset; 
 			
 			// The intersection of plane and sphere
 			Vector3D point = new Vector3D();
 			if (distance < radius) {
-				ma(src, n, -distance, point);
+				ma(src, normal, -distance, point);
 			} else {
-				double t = (distance - radius) / (distance - dotProduct(dest, n) + offset);
-				ma(ma(src, displ, t, point), n, -radius, point);
+				double t = (distance - radius) / (distance - dotProduct(dest, normal) + offset);
+				ma(ma(src, displ, t, point), normal, -radius, point);
 			}
 			
 			// Now to calculate Closest polygon vertex(face)
@@ -319,7 +339,7 @@ public class EllipsoidCollider {
 				Vector3D ac = substract(point, p1, new Vector3D());
 				Vector3D cr = crossProduct(ab, ac, new Vector3D());
 				// Case of the point is outside of the polygon
-				if (dotProduct(cr, n) < 0) {
+				if (dotProduct(cr, normal) < 0) {
 					double edgeLength = ab.getLengthSquared();
 					double edgeDistanceSqr = cr.getLengthSquared() / edgeLength;
 					if (edgeDistanceSqr < min) {
@@ -376,13 +396,12 @@ public class EllipsoidCollider {
 						minTime = time;
 						collisionPoint = face;
 						if (inside) {
-							collisionPlane = n;
+							collisionPlane = normal;
 							collisionPlane.w = offset;
 						} else {
-							deltaLength = Math.sqrt(deltaLength);
 							collisionPlane = delta;
 							collisionPlane.normalize();
-							collisionPlane.w = 1;
+							collisionPlane.w = dotProduct(collisionPoint, collisionPlane);
 						}
 					}
 				}
@@ -396,10 +415,9 @@ public class EllipsoidCollider {
 		return sphere;
 	}
 
-	// this method is called while collect geometries.
+	// this method is called while collecting geometries from the object3d to be detected with.
 	public void addGeometry(Geometry geometry, Transform3D transform) {
 		geometries.add(geometry);
 		transforms.add(transform);
 	}
-	
 }

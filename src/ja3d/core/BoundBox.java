@@ -18,10 +18,9 @@ public class BoundBox {
 		maxX = Double.MIN_VALUE;
 		maxY = Double.MIN_VALUE;
 		maxZ = Double.MIN_VALUE;
-		
 	}
 
-	// if return true, then intersects. AABB collison detection.
+	// if return true, then intersects. AABB collision detection.
 	public boolean checkSphere(Vector3D sphere) {
 		return sphere.x + sphere.w > minX && sphere.x - sphere.w < maxX 
 				&& sphere.y + sphere.w > minY && sphere.y - sphere.w < maxY 

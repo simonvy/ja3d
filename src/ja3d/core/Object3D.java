@@ -31,8 +31,11 @@ public class Object3D {
 	public Transform3D inverseTransform = new Transform3D();
 	private boolean transformChanged = true;
 	
+	// This two transformation are context sensitive.
+	// Currently only used during collision detection.
 	public Transform3D localToGlobalTransform = new Transform3D();
 	public Transform3D globalToLocalTransform = new Transform3D();
+	//
 	
 	public String getName() {
 		return name;
@@ -247,14 +250,13 @@ public class Object3D {
 			inverseTransform.invert();
 			transformChanged = false;
 		}
-		
 	}
 
 	public void collectGeometry(EllipsoidCollider ellipsoidCollider,
 			Map<Object3D, Object3D> excludedObjects) {
 	}
 	
-	public void collectionChildrenGeometry(EllipsoidCollider collidar,
+	public void collectChildrenGeometry(EllipsoidCollider collider,
 			Map<Object3D, Object3D> excludedObjects) {
 		
 		for (Object3D child = childrenList; child != null; child = child.next) {
@@ -265,16 +267,16 @@ public class Object3D {
 				// Check boundbox intersecting
 				boolean intersects = true;
 				if (child.getBoundBox() != null) {
-					collidar.calculateSphere(child.globalToLocalTransform);
-					intersects = child.getBoundBox().checkSphere(collidar.getSphere());
+					collider.calculateSphere(child.globalToLocalTransform);
+					intersects = child.getBoundBox().checkSphere(collider.getSphere());
 				}
 				// Adding the geometry of self content
 				if (intersects) {
 					Transform3D.multiply(localToGlobalTransform, child.transform, child.localToGlobalTransform);
-					child.collectGeometry(collidar, excludedObjects);
+					child.collectGeometry(collider, excludedObjects);
 				}
 				if (child.hasChildren()) {
-					child.collectionChildrenGeometry(collidar, excludedObjects);
+					child.collectChildrenGeometry(collider, excludedObjects);
 				}
 			}
 		}

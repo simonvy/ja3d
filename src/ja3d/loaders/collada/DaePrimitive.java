@@ -3,7 +3,6 @@ package ja3d.loaders.collada;
 import ja3d.resources.Geometry;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Element;
