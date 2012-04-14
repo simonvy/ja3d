@@ -24,16 +24,16 @@ public class DaeDocument {
 	private Map<String, DaeGeometry> geometries;
 	private Map<String, DaeNode> nodes;
 	
-	float unitScaleFactor = 1;
+	double unitScaleFactor = 1;
 	
-	public DaeDocument(Document document, float units) {
+	public DaeDocument(Document document, double units) {
 		
 		this.data = (Element) document.getElementsByTagName("COLLADA").item(0);
 		
 		// :version
 		
 		String unitXML = XmlPath.attribute(data, ".asset[0].unit[0].@meter");
-		float colladaUnit = Float.parseFloat(unitXML);
+		double colladaUnit = Float.parseFloat(unitXML);
 		
 		if (units > 0) {
 			unitScaleFactor = colladaUnit/units;

@@ -16,11 +16,14 @@ import static utils.Vector3D.*;
 
 public class EllipsoidCollider {
 	
-	private float radiusX;
-	private float radiusY;
-	private float radiusZ;
+	public double radiusX;
+	public double radiusY;
+	public double radiusZ;
 	
-	private float threshold = 0.001f;
+	// rotationZ, is this value compatible with the value of that rotationZ in the global space?
+	public double rotationZ;
+	
+	private double threshold = 0.001;
 	
 	private Transform3D matrix = new Transform3D();
 	private Transform3D inverseMatrix = new Transform3D();
@@ -36,7 +39,7 @@ public class EllipsoidCollider {
 	private int numTriangles;
 	
 	// source, displacement and destination in the local space.
-	private float radius;
+	private double radius;
 	private Vector3D src = new Vector3D();
 	private Vector3D displ = new Vector3D();
 	private Vector3D dest = new Vector3D();
@@ -53,7 +56,7 @@ public class EllipsoidCollider {
 	private Vector3D cornerD = new Vector3D();
 	//
 	
-	public EllipsoidCollider(float radiusX, float radiusY, float radiusZ) {
+	public EllipsoidCollider(double radiusX, double radiusY, double radiusZ) {
 		this.radiusX = radiusX;
 		this.radiusX = radiusY;
 		this.radiusX = radiusZ;
@@ -90,7 +93,7 @@ public class EllipsoidCollider {
 		// This is the transform matrix with the ellipsoid as control.
 		// We call this coordinates space as the collider space or the collision space.  
 		// TODO: can we deal with rotation here?
-		matrix.compose(source.x, source.y, source.z, 0, 0, 0, radiusX / radius, radiusY / radius, radiusZ / radius);
+		matrix.compose(source.x, source.y, source.z, 0, 0, rotationZ, radiusX / radius, radiusY / radius, radiusZ / radius);
 		inverseMatrix.copy(matrix);
 		inverseMatrix.invert();
 		

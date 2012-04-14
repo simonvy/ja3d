@@ -19,7 +19,7 @@ class DaeVertex {
 	Vector3D normal;
 	Vector3D tangent;
 	
-	public void addPosition(double[] data, int dataIndex, int stride, float unitScaleFactor) {
+	public void addPosition(double[] data, int dataIndex, int stride, double unitScaleFactor) {
 		assert(stride == 3);
 		indices.add(dataIndex);
 		int offset = stride * dataIndex;
