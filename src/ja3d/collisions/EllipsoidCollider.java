@@ -38,6 +38,12 @@ public class EllipsoidCollider {
 	private List<Integer> indices = new ArrayList<Integer>();
 	private int numTriangles;
 	
+	// (number, name) pairs, which indicates the triangles starting from index number belongs to the mesh of the given name.
+	// This array is filled in prepare and used in the collision detection.
+	private List<Object> triangleIndices = new ArrayList<Object>();
+	// the name of the collided object. This value is set in checkCollision.
+	private String collisionTargetName;
+	
 	// source, displacement and destination in the local space.
 	private double radius;
 	private Vector3D src = new Vector3D();
@@ -134,6 +140,7 @@ public class EllipsoidCollider {
 			}
 		}
 		
+		triangleIndices.clear();
 		numTriangles = 0;
 		
 		// Loop geometries
@@ -146,6 +153,19 @@ public class EllipsoidCollider {
 			int geometryIndicesLength = geometry._indices.size();
 			if (geometry.getNumVertices() == 0 || geometryIndicesLength == 0) {
 				continue;
+			}
+			
+			if (triangleIndices.size() > 0) {
+				Integer lastIndex = (Integer) triangleIndices.get(triangleIndices.size() - 2);
+				if (lastIndex.intValue() == numTriangles) {
+					triangleIndices.set(triangleIndices.size() - 1, geometry.getName());
+				} else {
+					triangleIndices.add(new Integer(numTriangles));
+					triangleIndices.add(geometry.getName());
+				}
+			} else {
+				triangleIndices.add(new Integer(numTriangles));
+				triangleIndices.add(geometry.getName());
 			}
 			
 			// Transform vertices
@@ -207,6 +227,8 @@ public class EllipsoidCollider {
 		
 		geometries.clear();
 		transforms.clear();
+		
+		triangleIndices.add(Integer.MAX_VALUE);
 	}
 	
 	public Vector3D calculateDestination(Vector3D source, Vector3D displacement, Object3D object, Map<Object3D, Object3D> excludedObjects) {
@@ -296,13 +318,19 @@ public class EllipsoidCollider {
 		return false;
 	}
 
-	private boolean checkCollision() {					
+	private boolean checkCollision() {
+		collisionTargetName = "";
+		lastIndex = -2;
+		
 		double minTime = 1;
 		double displacementLength = displ.getLength();
 		
 		// Loop triangles
 		int indicesLength = numTriangles * 3;
 		for (int i = 0, j = 0; i < indicesLength;) {
+			// which triangle is this? used to identity the geometry and its mesh name.
+			String meshName = getGeometryNameForTriangle(i / 3);
+			
 			// three Points for the triangle
 			int indexA = indices.get(i) * 3;
 			int indexB = indices.get(i + 1) * 3;
@@ -397,6 +425,7 @@ public class EllipsoidCollider {
 					// Collision with closest point occurs
 					if (time < minTime) {
 						minTime = time;
+						collisionTargetName = meshName;
 						collisionPoint = face;
 						if (inside) {
 							collisionPlane = normal;
@@ -422,5 +451,23 @@ public class EllipsoidCollider {
 	public void addGeometry(Geometry geometry, Transform3D transform) {
 		geometries.add(geometry);
 		transforms.add(transform);
+	}
+	
+	private int lastIndex = 0;
+	private String getGeometryNameForTriangle(int triangleNumber) {
+		while (true) {
+			Integer index = (Integer)triangleIndices.get(lastIndex + 2);
+			if (triangleNumber >= index.intValue()) {
+				lastIndex += 2;
+			} else {
+				break;
+			}
+		}
+		
+		return (String)triangleIndices.get(lastIndex + 1);
+	}
+	
+	public String getCollisionTarget() {
+		return collisionTargetName;
 	}
 }

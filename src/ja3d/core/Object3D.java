@@ -285,4 +285,8 @@ public class Object3D {
 	public boolean hasChildren() {
 		return childrenList != null;
 	}
+	
+	public boolean isTransformChanged() {
+		return this.transformChanged;
+	}
 }

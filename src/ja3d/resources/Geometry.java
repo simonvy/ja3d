@@ -14,6 +14,10 @@ import ja3d.core.VertexStream;
 
 public class Geometry extends Resource {
 
+	// the name of the mesh which contains this geometry.
+	// this value is used to identify the target mesh during the collision detection.
+	private String _name;
+
 	private List<VertexStream> _vertexStreams = new ArrayList<VertexStream>();
 	
 	private int _numVertices = 0;
@@ -136,5 +140,13 @@ public class Geometry extends Resource {
 	public int getAttributeOffset(int attribute) {
 		assert(attribute > 0 && attribute < VertexAttributes.NEXT_INDEX);
 		return _attributesOffsets[attribute];
+	}
+	
+	public String getName() {
+		return "";
+	}
+	
+	public void setName(String value) {
+		_name = value;
 	}
 }

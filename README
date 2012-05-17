@@ -4,3 +4,9 @@ Alternativa 3D engine in Java which includes the following features:
 2) Collision detection.
 
 This project is still in development.
+
+Features:
+
+1) Add EllipsoidCollider the rotationZ property.
+2) EllipsoidCollider returns the name of the collided mesh. To identify the target, the way is to
+give every mesh a unique name.

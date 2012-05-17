@@ -18,6 +18,7 @@ public class Mesh extends Object3D {
 
 	@Override
 	public void collectGeometry(EllipsoidCollider collider, Map<Object3D, Object3D> excludedObjets) {
+		geometry.setName(this.getName());
 		collider.addGeometry(geometry, localToGlobalTransform);
 	}
 	
