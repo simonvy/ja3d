@@ -38,24 +38,34 @@ public class Main {
 		Vector3D src = new Vector3D();
 		Vector3D displ = new Vector3D();
 		
-		src.x = 60.591072778383385;
-		src.y = 90.35632693575246;
-		src.z = 84;
+//		src.x = 60.591072778383385;
+//		src.y = 90.35632693575246;
+//		src.z = 84;
+//		
+//		displ.x = -4.974067839938843;
+//		displ.y = -4.338046694502737;
+//		displ.z = 0;
 		
-		displ.x = -4.974067839938843;
-		displ.y = -4.338046694502737;
-		displ.z = 0;
-		
-		Vector3D collidePoint = new Vector3D();
-		Vector3D collidePlane = new Vector3D();
-		
-		boolean collided = ellipsoid.getCollision(src, displ, collidePoint, collidePlane, _model, null);
+		for (int i = 0; i < 1; i++) {
+			src.x = 111.98779365595755;
+			src.y = 46.65673508520179;
+			src.z = 84;
+			
+			displ.x = -7.167661870797666;
+			displ.y = -6.828954774042168;
+			displ.z = 0;
+			
+			Vector3D collidePoint = new Vector3D();
+			Vector3D collidePlane = new Vector3D();
+			
+			boolean collided = ellipsoid.getCollision(src, displ, collidePoint, collidePlane, _model, null);
 
-		System.out.println(collided);
-		
-		if (collided) {
-			Vector3D des = ellipsoid.calculateDestination(src, displ, _model, null);
-			System.out.println(des.x + " " + des.y + " " + des.z + " " + des.w);
+			System.out.println(collided);
+			
+			if (collided) {
+				Vector3D des = ellipsoid.calculateDestination(src, displ, _model, null);
+				System.out.println(des.x + " " + des.y + " " + des.z + " " + des.w);
+			}
 		}
 	}
 	
