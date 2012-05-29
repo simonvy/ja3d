@@ -15,4 +15,8 @@ public class Parser {
 		objects = new ArrayList<Object3D>();
 	}
 	
+	public List<Object3D> getHierarchy() {
+		return hierarchy;
+	}
+	
 }

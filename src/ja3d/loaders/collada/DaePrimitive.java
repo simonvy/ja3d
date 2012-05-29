@@ -215,18 +215,23 @@ class DaePrimitive extends DaeElement {
 		indexBegin = geometry._indices.size();
 		for (int i = 0; i < numIndices; i+= inputsStride) {
 			int index = indices[i + mainInput.offset()];
-			
 			DaeVertex vertex = index < vertices.size() ? vertices.get(index) : null;
 			// not exist
 			if (vertex == null || !isEqual(vertex, indices, i, inputOffsets)) {
-				vertex = new DaeVertex();
-				// replace or add to end
-				if (index < vertices.size()) {
-					vertices.set(index, vertex);
-				} else {
-					vertices.add(vertex);
+				
+				DaeVertex newVertex = new DaeVertex();
+				
+				if (vertex != null) {
+					vertices.add(newVertex);
 					index = vertices.size() - 1;
+				} else {
+					while(vertices.size() <= index) {
+						vertices.add(null);
+					}
+					vertices.set(index, newVertex);
 				}
+				
+				vertex = newVertex;
 				
 				vertex.vertexInIndex = indices[i + verticesInput.offset()];
 				vertex.addPosition(positionSource.numbers, vertex.vertexInIndex, positionSource.stride, document.unitScaleFactor);

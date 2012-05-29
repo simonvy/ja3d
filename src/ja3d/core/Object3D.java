@@ -11,17 +11,17 @@ public class Object3D {
 	
 	private BoundBox boundBox;
 	
-	private double x;
-	private double y;
-	private double z;
+	private double x = 0;
+	private double y = 0;
+	private double z = 0;
 	
-	private double rotationX;
-	private double rotationY;
-	private double rotationZ;
+	private double rotationX = 0;
+	private double rotationY = 0;
+	private double rotationZ = 0;
 	
-	private double scaleX;
-	private double scaleY;
-	private double scaleZ;
+	private double scaleX = 1;
+	private double scaleY = 1;
+	private double scaleZ = 1;
 	
 	private Object3D parent;
 	private Object3D childrenList;

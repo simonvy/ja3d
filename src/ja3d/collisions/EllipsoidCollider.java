@@ -64,8 +64,8 @@ public class EllipsoidCollider {
 	
 	public EllipsoidCollider(double radiusX, double radiusY, double radiusZ) {
 		this.radiusX = radiusX;
-		this.radiusX = radiusY;
-		this.radiusX = radiusZ;
+		this.radiusY = radiusY;
+		this.radiusZ = radiusZ;
 	}
 	
 	public void calculateSphere(Transform3D transform) {
@@ -76,7 +76,7 @@ public class EllipsoidCollider {
 		// sphere.w, the radius is the max distance from the sphere to the four corners.
 		Vector3D s = new Vector3D();
 		Vector3D d = new Vector3D();
-		Vector3D[] corners = {cornerA, cornerD, cornerD, cornerD};
+		Vector3D[] corners = {cornerA, cornerB, cornerC, cornerD};
 		for (Vector3D corner : corners) {
 			transform.transform(corner, s);
 			substract(s, sphere, d);
@@ -106,7 +106,7 @@ public class EllipsoidCollider {
 		// Local source - src
 		src.setTo(0, 0, 0);
 		// Local offset - displ
-		matrix.transformWithoutTranslate(displacement, displ);
+		inverseMatrix.transformWithoutTranslate(displacement, displ);
 		// Local destination point - dest
 		add(src, displ, dest);
 		
@@ -220,6 +220,7 @@ public class EllipsoidCollider {
 				normals.add(normal.y);
 				normals.add(normal.z);
 				normals.add(offset);
+				numTriangles ++;
 			}
 			// Offset by number of vertices
 			mapOffset += geometry.getNumVertices();
@@ -418,7 +419,7 @@ public class EllipsoidCollider {
 				// Length of Vector pointed from closest point to the center of sphere
 				double deltaLength = delta.getLengthSquared();
 				double projectionLength = dotProduct(delta, back);
-				double projectionInsideLength = radius * radius - deltaLength - projectionLength * projectionLength;
+				double projectionInsideLength = radius * radius - deltaLength + projectionLength * projectionLength;
 				if (projectionInsideLength > 0) {
 					// Time of the intersection
 					double time = (projectionLength - Math.sqrt(projectionInsideLength)) / displacementLength;
