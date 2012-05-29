@@ -143,7 +143,7 @@ public class Geometry extends Resource {
 	}
 	
 	public String getName() {
-		return "";
+		return _name;
 	}
 	
 	public void setName(String value) {

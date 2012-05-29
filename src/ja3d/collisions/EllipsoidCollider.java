@@ -141,6 +141,7 @@ public class EllipsoidCollider {
 		}
 		
 		triangleIndices.clear();
+		vertices.clear();
 		numTriangles = 0;
 		
 		// Loop geometries
