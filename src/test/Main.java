@@ -2,7 +2,6 @@ package test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import ja3d.loaders.ParserCollada;
 import ja3d.objects.Mesh;
@@ -34,45 +33,37 @@ public class Main {
 		initFromDae(p);
 		
 		
-		EllipsoidCollider ellipsoid = new EllipsoidCollider(40, 40, 40);
+		EllipsoidCollider ellipsoid = new EllipsoidCollider(62, 37, 84);
 		
-		Vector3D src = new Vector3D(-10, -10, 40);
-		Vector3D displ = new Vector3D(30, 30, 0);
+		Vector3D src = new Vector3D();
+		Vector3D displ = new Vector3D();
+		
+		src.x = 60.591072778383385;
+		src.y = 90.35632693575246;
+		src.z = 84;
+		
+		displ.x = -4.974067839938843;
+		displ.y = -4.338046694502737;
+		displ.z = 0;
+		
 		Vector3D collidePoint = new Vector3D();
 		Vector3D collidePlane = new Vector3D();
 		
 		boolean collided = ellipsoid.getCollision(src, displ, collidePoint, collidePlane, _model, null);
-		
+
 		System.out.println(collided);
+		
+		if (collided) {
+			Vector3D des = ellipsoid.calculateDestination(src, displ, _model, null);
+			System.out.println(des.x + " " + des.y + " " + des.z + " " + des.w);
+		}
 	}
-	
-	
-	
 	
 	private static void initFromDae(ParserCollada daeParser) {
 		_model = new Object3D();
 		_model.setName("ground");
 		
 		for (Object3D o : daeParser.getHierarchy()) {
-//			if (!(o instanceof Mesh)) {
-//				switch(o.numChildren) {
-//					case 1:
-//						Object3D child = o.getChildAt(0);
-//						if (child.getName().equals(o.getName() + "_PIVOT"))) { // add PIVOT node directly into the ground.
-//							child.setName(o.getName());
-//							child.matrix = child.concatenatedMatrix;
-//							o = child;
-//						} else {
-//							trace(o.name + " has an unexpected child named " + child.name);
-//							o = null;
-//						}
-//						break;
-//					default:
-//						trace(o.name + " has unexpected " + o.numChildren + " object");
-//						o = null;
-//						break;
-//				}
-//			}
 			if (o != null) {
 				// o now is a mesh
 				Mesh oo = (Mesh)o;
@@ -80,5 +71,4 @@ public class Main {
 			}
 		}
 	}
-
 }

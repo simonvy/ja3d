@@ -376,6 +376,7 @@ public class EllipsoidCollider {
 					double edgeLength = ab.getLengthSquared();
 					double edgeDistanceSqr = cr.getLengthSquared() / edgeLength;
 					if (edgeDistanceSqr < min) {
+						edgeLength = Math.sqrt(edgeLength);
 						// Edge normalization
 						ab.normalize();
 						// Distance to intersection of normal along the edge
