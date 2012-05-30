@@ -87,6 +87,22 @@ public class EllipsoidCollider {
 		}
 	}
 	
+	// temporary vectors
+	private Vector3D v = new Vector3D();
+	private Vector3D tv = new Vector3D();
+	private Vector3D a = new Vector3D();
+	private Vector3D b = new Vector3D();
+	private Vector3D c = new Vector3D();
+	private Vector3D ab = new Vector3D();
+	private Vector3D ac = new Vector3D();
+	private Vector3D normal = new Vector3D();
+	private Vector3D cr = new Vector3D();
+	private Vector3D point = new Vector3D();
+	private Vector3D face = new Vector3D();
+	private Vector3D delta = new Vector3D();
+	private Vector3D back = new Vector3D();
+	//
+	
 	private void prepare(Vector3D source, Vector3D displacement, 
 			Object3D object, Map<Object3D, Object3D> excludedObjects) {
 		
@@ -94,10 +110,7 @@ public class EllipsoidCollider {
 		radius = Math.max(Math.max(radiusX, radiusY), radiusZ);
 		
 		// use the virtual sphere to do collision detection
-		// Using the status of this ellipsoid as control,
 		// transform the specified object in the global world into the local world of the virtual sphere.
-		// This is the transform matrix with the ellipsoid as control.
-		// We call this coordinates space as the collider space or the collision space.  
 		// TODO: can we deal with rotation here?
 		matrix.compose(source.x, source.y, source.z, 0, 0, rotationZ, radiusX / radius, radiusY / radius, radiusZ / radius);
 		inverseMatrix.copy(matrix);
@@ -179,11 +192,11 @@ public class EllipsoidCollider {
 				ByteArray data = vBuffer.data;
 				for (int j = 0; j < geometry.getNumVertices(); j++) {
 					data.setPosition(4 * (numMappings * j + attributesOffset));
-					Vector3D v = new Vector3D();
+					
 					v.x = data.readFloat();
 					v.y = data.readFloat();
 					v.z = data.readFloat();
-					Vector3D tv = new Vector3D();
+					
 					transform.transform(v, tv);
 					vertices.add(tv.x);
 					vertices.add(tv.y);
@@ -198,9 +211,9 @@ public class EllipsoidCollider {
 				int bi = geometryIndices.get(j + 1) + mapOffset;
 				int ci = geometryIndices.get(j + 2) + mapOffset;
 				
-				Vector3D a = new Vector3D(vertices.get(ai * 3), vertices.get(ai * 3 + 1), vertices.get(ai * 3 + 2));
-				Vector3D b = new Vector3D(vertices.get(bi * 3), vertices.get(bi * 3 + 1), vertices.get(bi * 3 + 2));
-				Vector3D c = new Vector3D(vertices.get(ci * 3), vertices.get(ci * 3 + 1), vertices.get(ci * 3 + 2));
+				a.setTo(vertices.get(ai * 3), vertices.get(ai * 3 + 1), vertices.get(ai * 3 + 2));
+				b.setTo(vertices.get(bi * 3), vertices.get(bi * 3 + 1), vertices.get(bi * 3 + 2));
+				c.setTo(vertices.get(ci * 3), vertices.get(ci * 3 + 1), vertices.get(ci * 3 + 2));
 				
 				// Exclusion by bound
 				if (a.x > rad && b.x > rad && c.x > rad || a.x < -rad && b.x < -rad && c.x < -rad) continue;
@@ -208,9 +221,9 @@ public class EllipsoidCollider {
 				if (a.z > rad && b.z > rad && c.z > rad || a.z < -rad && b.z < -rad && c.z < -rad) continue;
 				
 				// The normal
-				Vector3D ab = substract(b, a, new Vector3D());
-				Vector3D ac = substract(c, a, new Vector3D());
-				Vector3D normal = crossProduct(ab, ac, new Vector3D());
+				substract(b, a, ab);
+				substract(c, a, ac);
+				crossProduct(ab, ac, normal);
 				double len = normal.getLengthSquared();
 				if (len < 0.001) continue;
 				normal.normalize();
@@ -281,7 +294,6 @@ public class EllipsoidCollider {
 				matrix.transform(collisionPoint, resCollisionPoint);
 				
 				// Transform the plane to the global space
-				Vector3D ab = new Vector3D();
 				if (collisionPlane.x < collisionPlane.y) {
 					if (collisionPlane.x < collisionPlane.z) {
 						ab.x = 0;
@@ -304,9 +316,9 @@ public class EllipsoidCollider {
 					}
 				}
 				
-				Vector3D ac = crossProduct(ab, collisionPlane, new Vector3D());
-				Vector3D ab2 = matrix.transformWithoutTranslate(ab, new Vector3D());
-				Vector3D ac2 = matrix.transformWithoutTranslate(ac, new Vector3D());
+				crossProduct(ab, collisionPlane, ac);
+				Vector3D ab2 = matrix.transformWithoutTranslate(ab, v);
+				Vector3D ac2 = matrix.transformWithoutTranslate(ac, tv);
 				
 				crossProduct(ac2, ab2, resCollisionPlane);
 				resCollisionPlane.normalize();
@@ -341,12 +353,12 @@ public class EllipsoidCollider {
 			int indexC = indices.get(i + 2) * 3;
 			i += 3;
 			
-			Vector3D a = new Vector3D(vertices.get(indexA), vertices.get(indexA + 1), vertices.get(indexA + 2));
-			Vector3D b = new Vector3D(vertices.get(indexB), vertices.get(indexB + 1), vertices.get(indexB + 2));
-			Vector3D c = new Vector3D(vertices.get(indexC), vertices.get(indexC + 1), vertices.get(indexC + 2));
+			a.setTo(vertices.get(indexA), vertices.get(indexA + 1), vertices.get(indexA + 2));
+			b.setTo(vertices.get(indexB), vertices.get(indexB + 1), vertices.get(indexB + 2));
+			c.setTo(vertices.get(indexC), vertices.get(indexC + 1), vertices.get(indexC + 2));
 			
 			// Normal
-			Vector3D normal = new Vector3D(normals.get(j), normals.get(j + 1), normals.get(j + 2));
+			normal.setTo(normals.get(j), normals.get(j + 1), normals.get(j + 2));
 			double offset = normals.get(j + 3);
 			j += 4;
 			
@@ -354,7 +366,6 @@ public class EllipsoidCollider {
 			double distance = dotProduct(src, normal) - offset; 
 			
 			// The intersection of plane and sphere
-			Vector3D point = new Vector3D();
 			if (distance < radius) {
 				ma(src, normal, -distance, point);
 			} else {
@@ -363,16 +374,16 @@ public class EllipsoidCollider {
 			}
 			
 			// Now to calculate Closest polygon vertex(face)
-			Vector3D face = null;
 			double min = Double.MAX_VALUE;
 			boolean inside = true;
 			Vector3D[] ps = {a, b, c};
 			for (int k = 0; k < ps.length; k++) {
 				Vector3D p1 = ps[k];
 				Vector3D p2 = ps[(k + 1) % ps.length];
-				Vector3D ab = substract(p2, p1, new Vector3D());
-				Vector3D ac = substract(point, p1, new Vector3D());
-				Vector3D cr = crossProduct(ab, ac, new Vector3D());
+				
+				substract(p2, p1, ab);
+				substract(point, p1, ac);
+				crossProduct(ab, ac, cr);
 				// Case of the point is outside of the polygon
 				if (dotProduct(cr, normal) < 0) {
 					double edgeLength = ab.getLengthSquared();
@@ -388,7 +399,7 @@ public class EllipsoidCollider {
 							double acLen = ac.getLengthSquared();
 							if (acLen < min) {
 								min = acLen;
-								face = p1;
+								face.setTo(p1.x, p1.y, p1.z);
 							}
 						} else if (t > edgeLength) {
 							// Closest point is the second one
@@ -396,12 +407,12 @@ public class EllipsoidCollider {
 							double acLen = ac.getLengthSquared();
 							if (acLen < min) {
 								min = acLen;
-								face = p2;
+								face.setTo(p2.x, p2.y, p2.z);
 							}
 						} else {
 							// Closest point is on edge
 							min = edgeDistanceSqr;
-							face = ma(p1, ab, t, new Vector3D());
+							ma(p1, ab, t, face);
 						}
 					}
 					inside = false;
@@ -410,16 +421,16 @@ public class EllipsoidCollider {
 			
 			// Case of point is inside polygon
 			if (inside) {
-				face = point;
+				face.setTo(point.x, point.y, point.z);
 			}
 			
 			// Vector pointed from closest point to the center of sphere
-			Vector3D delta = substract(src, face, new Vector3D());
+			substract(src, face, delta);
 			
 			// If move directed to point
 			if (dotProduct(delta, displ) <= 0) {
 				// reserved vector
-				Vector3D back = scale(displ, -1 / displacementLength, new Vector3D());
+				scale(displ, -1 / displacementLength, back);
 				// Length of Vector pointed from closest point to the center of sphere
 				double deltaLength = delta.getLengthSquared();
 				double projectionLength = dotProduct(delta, back);
@@ -431,12 +442,12 @@ public class EllipsoidCollider {
 					if (time < minTime) {
 						minTime = time;
 						collisionTargetName = meshName;
-						collisionPoint = face;
+						collisionPoint.setTo(face.x, face.y, face.z);
 						if (inside) {
-							collisionPlane = normal;
+							collisionPlane.setTo(normal.x, normal.y, normal.z);
 							collisionPlane.w = offset;
 						} else {
-							collisionPlane = delta;
+							collisionPlane.setTo(delta.x, delta.y, delta.z);
 							collisionPlane.normalize();
 							collisionPlane.w = dotProduct(collisionPoint, collisionPlane);
 						}
